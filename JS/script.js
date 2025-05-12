@@ -13,11 +13,15 @@ function windowResized() {
 }
 
 function px(number) {
-    return number * (windowWidth / 3) / 100;
+    if (windowWidth <= 650) {
+        return number * (windowWidth) * 0.8 / 100;
+    } else {
+        return number * (windowWidth / 3) / 100;
+    }
 }
 
 function positionCanvas() {
-    if (windowWidth <= 500) {
+    if (windowWidth <= 650) {
         resizeCanvas(windowWidth * 0.8, windowWidth * 0.8);
         const xPos = (windowWidth - width) / 2;
         const yPos = (windowHeight - height) / 2;
