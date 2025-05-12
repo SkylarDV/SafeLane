@@ -1,8 +1,36 @@
+let canvas;
+
 function setup() {
-    createCanvas(800, 600);
-    background(230);
+    canvas = createCanvas(windowWidth / 3, windowWidth / 3);
+    positionCanvas();
+    background(0);
+}
+
+function windowResized() {
+    resizeCanvas(windowWidth / 3, windowWidth / 3);
+    positionCanvas();
+    background(0);
+}
+
+function px(number) {
+    return number * (windowWidth / 3) / 100;
+}
+
+function positionCanvas() {
+    if (windowWidth <= 500) {
+        resizeCanvas(windowWidth * 0.8, windowWidth * 0.8);
+        const xPos = (windowWidth - width) / 2;
+        const yPos = (windowHeight - height) / 2;
+        canvas.position(xPos, yPos);
+    } else {
+        const xPos = windowWidth / 2 + (windowWidth / 4) - width / 2;
+        const yPos = (windowHeight / 2) - height / 2;
+        canvas.position(xPos, yPos);
+    }
 }
 
 function draw() {
-
+    fill(255, 0, 0);
+    noStroke();
+    ellipse(px(15), px(30), px(5), px(5));
 }
