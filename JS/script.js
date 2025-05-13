@@ -7,6 +7,7 @@ let bottomVehicle;
 let rightVehicle;
 let leftVehicle;
 let topVehicle;
+let priorGameInitialized = false;
 
 function preload() {
     roadbg = loadImage('../images/roadbg.png');
@@ -20,12 +21,6 @@ function setup() {
     canvas = createCanvas(windowWidth / 3, windowWidth / 3);
     positionCanvas();
     background(0);
-
-    // Create instances of Vehicle
-    bottomVehicle = new Vehicle(bottomVehicleImg, px(52), px(70), px(10), px(30));
-    rightVehicle = new Vehicle(rightVehicleImg, px(70), px(35), px(30), px(10));
-    leftVehicle = new Vehicle(leftVehicleImg, px(0), px(50), px(30), px(10));
-    topVehicle = new Vehicle(topVehicleImg, px(38), px(0), px(10), px(30));
 }
 
 function windowResized() {
@@ -56,13 +51,16 @@ function positionCanvas() {
 }
 
 class Vehicle {
-    constructor(image, x, y, width, height) {
+    constructor(image, x, y, width, height, targetZone, priority) {
         this.image = image;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.isDragging = false;
+        this.targetZone = targetZone;
+        this.inTargetZone = false;
+        this.priority = this.priority;
     }
 
     mousePressed() {
@@ -78,6 +76,7 @@ class Vehicle {
 
     mouseReleased() {
         this.isDragging = false;
+        this.checkInTargetZone();
     }
 
     drag() {
@@ -87,11 +86,41 @@ class Vehicle {
         }
     }
 
+    checkInTargetZone() {
+        if (
+            this.x + this.width > this.targetZone.x &&
+            this.x < this.targetZone.x + this.targetZone.width &&
+            this.y + this.height > this.targetZone.y &&
+            this.y < this.targetZone.y + this.targetZone.height
+        ) {
+            this.inTargetZone = true;
+        } else {
+            this.inTargetZone = false;
+        }
+    }
+
     draw() {
-        image(this.image, this.x, this.y, this.width, this.height);
+        if (!this.inTargetZone) {
+            image(this.image, this.x, this.y, this.width, this.height);
+        }
+        
     }
 }
 
+class Target {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = px(30);
+        this.height = px(30);
+    }
+
+    draw() {
+        noStroke();
+        fill(255, 0, 0, 50)
+        rect(this.x, this.y, px(30), px(30));
+    }
+}
 function mousePressed() {
     bottomVehicle.mousePressed();
     rightVehicle.mousePressed();
@@ -106,17 +135,6 @@ function mouseReleased() {
     topVehicle.mouseReleased();
 }
 
-function priorGame() {
-    bottomVehicle.drag();
-    rightVehicle.drag();
-    leftVehicle.drag();
-    topVehicle.drag();
-    bottomVehicle.draw();
-    rightVehicle.draw();
-    leftVehicle.draw();
-    //topVehicle.draw();
-}
-
 function draw() {
     clear();
     background(roadbg);
@@ -124,3 +142,41 @@ function draw() {
         priorGame();
     }
 }
+
+function priorGame() {
+    if (!priorGameInitialized) {
+        // Create vehicles and target zones only once
+
+        targetZoneTop = new Target(px(35), px(0));
+        targetZoneBottom = new Target(px(35), px(70));
+        targetZoneLeft = new Target(px(0), px(35));
+        targetZoneRight = new Target(px(70), px(35));
+        
+        bottomVehicle = new Vehicle(bottomVehicleImg, px(52), px(70), px(10), px(30), targetZoneTop, 1);
+        rightVehicle = new Vehicle(rightVehicleImg, px(70), px(35), px(30), px(10), targetZoneBottom, 3);
+        leftVehicle = new Vehicle(leftVehicleImg, px(0), px(50), px(30), px(10), targetZoneRight, 2);
+        topVehicle = new Vehicle(topVehicleImg, px(38), px(0), px(10), px(30), targetZoneLeft, 4);
+
+        priorGameInitialized = true;
+    }
+    if (priorGameInitialized) {
+        targetZoneTop.draw();
+        targetZoneBottom.draw();
+        targetZoneLeft.draw();
+        targetZoneRight.draw();
+
+        bottomVehicle.drag();
+        rightVehicle.drag();
+        leftVehicle.drag();
+        //topVehicle.drag();
+
+        bottomVehicle.draw();
+        rightVehicle.draw();
+        leftVehicle.draw();
+        //topVehicle.draw();
+    }
+
+    
+}
+
+
