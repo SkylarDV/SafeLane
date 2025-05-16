@@ -4,6 +4,9 @@ let roadbg;
 let priorGameInitialized = false;
 let placementOrder = [];
 let feedbackLight = null;
+let itemSpots = [];
+let items = [];
+let objectGameInitialized = false;
 
 function preload() {
     roadbg = loadImage('../images/roadbg.png');
@@ -151,6 +154,69 @@ class TrafficSign {
         image(this.image, this.x, this.y, this.width, this.height);
     }
 }
+class ItemSpot {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = px(20);
+        this.height = px(30);
+    }
+
+    draw() {
+        noStroke();
+        fill(0, 255, 0, 50); // Light green, semi-transparent
+        rect(this.x, this.y, this.width, this.height);
+    }
+}
+
+class Item {
+    constructor(image, assignedSpot, necessary) {
+        this.image = image;
+        this.assignedSpot = assignedSpot; // Instance of ItemSpot
+        this.necessary = necessary;
+        this.width = px(20);
+        this.height = px(30);
+        this.x = assignedSpot.x;
+        this.y = assignedSpot.y;
+        this.isDragging = false;
+        this.removed = false;
+    }
+
+    mousePressed() {
+        if (
+            !this.removed &&
+            mouseX > this.x &&
+            mouseX < this.x + this.width &&
+            mouseY > this.y &&
+            mouseY < this.y + this.height
+        ) {
+            this.isDragging = true;
+        }
+    }
+
+    mouseReleased() {
+        if (this.isDragging) {
+            this.isDragging = false;
+            // If dropped in top half, remove
+            if (this.y < height / 2) {
+                this.removed = true;
+            }
+        }
+    }
+
+    drag() {
+        if (this.isDragging && !this.removed) {
+            this.x = mouseX - this.width / 2;
+            this.y = mouseY - this.height / 2;
+        }
+    }
+
+    draw() {
+        if (!this.removed) {
+            image(this.image, this.x, this.y, this.width, this.height);
+        }
+    }
+}
 
 function mousePressed() {
     if (game === "prior") {
@@ -158,6 +224,11 @@ function mousePressed() {
         rightVehicle.mousePressed();
         leftVehicle.mousePressed();
         topVehicle.mousePressed();
+    }
+    if (game === "object") {
+        for (let item of items) {
+            item.mousePressed();
+        }
     }
 }
 
@@ -167,6 +238,17 @@ function mouseReleased() {
         rightVehicle.mouseReleased();
         leftVehicle.mouseReleased();
         topVehicle.mouseReleased();
+    }
+    if (game === "object") {
+        for (let item of items) {
+            item.mouseReleased();
+        }
+        // Check after releasing any item
+        if (checkItemsRemovedCorrectly()) {
+            feedbackLight = 'green';
+        } else {
+            feedbackLight = 'red';
+        }
     }
 }
 
@@ -237,10 +319,50 @@ function priorGame() {
 }
 
 function objectGame() {
+    if (!objectGameInitialized) {
+        // Calculate spacing
+        let spacing = (width - 4 * px(20)) / 5;
+        let y = height - px(30) - px(7);
+        itemSpots = [];
+        for (let i = 0; i < 4; i++) {
+            let x = spacing + i * (px(20) + spacing);
+            itemSpots.push(new ItemSpot(x, y));
+        }
+        items = [
+            new Item(bottomVehicleImg, itemSpots[0], true),
+            new Item(rightVehicleImg, itemSpots[1], false),
+            new Item(leftVehicleImg, itemSpots[2], false),
+            new Item(topVehicleImg, itemSpots[3], true)
+        ];
+        objectGameInitialized = true;
+    }
+
     for (let y = 0; y < height; y++) {
         let inter = map(y, 0, height, 0, 1);
         let c = lerpColor(color('#1E3C51'), color('#192C3A'), inter);
         stroke(c);
         line(0, y, width, y);
     }
+    for (let spot of itemSpots) {
+        spot.draw();
+    }
+    for (let item of items) {
+        item.drag();
+        item.draw();
+    }
+}
+
+function checkItemsRemovedCorrectly() {
+    // Returns true if all unnecessary items are removed and all necessary items are not removed
+    for (let item of items) {
+        if (item.necessary && item.removed) {
+            // A necessary item was removed (incorrect)
+            return false;
+        }
+        if (!item.necessary && !item.removed) {
+            // An unnecessary item was not removed (incorrect)
+            return false;
+        }
+    }
+    return true;
 }
