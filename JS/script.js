@@ -1,5 +1,5 @@
 let canvas;
-let game = "object";
+let game = "sign";
 let roadbg;
 let priorGameInitialized = false;
 let placementOrder = [];
@@ -7,6 +7,9 @@ let feedbackLight = null;
 let itemSpots = [];
 let items = [];
 let objectGameInitialized = false;
+let growingSign;
+let slider;
+let sliderValue = 10;
 
 function preload() {
     roadbg = loadImage('../images/roadbg.png');
@@ -24,6 +27,15 @@ function setup() {
     canvas = createCanvas(windowWidth / 3, windowWidth / 3);
     positionCanvas();
     background(0);
+
+    // Create slider for signGame
+    slider = createSlider(10, 100, 10, 10);
+    slider.style('width', px(40) + 'px');
+    slider.position(
+        width / 2 - px(20) + canvas.position().x,
+        height / 2 + px(25) + canvas.position().y
+    );
+    slider.hide(); // Only show in signGame
 }
 
 function windowResized() {
@@ -218,6 +230,34 @@ class Item {
     }
 }
 
+class GrowingSign {
+    constructor(image, allowedSpeed) {
+        this.image = image;
+        this.size = px(20);
+        this.allowedSpeed = allowedSpeed; // px per second
+        this.startTime = null;
+        this.maxSize = px(40);
+        this.minSize = px(20);
+        this.duration = (this.maxSize - this.minSize) / this.allowedSpeed; // seconds
+    }
+
+    update() {
+        if (this.startTime === null) {
+            this.startTime = millis();
+        }
+        let elapsed = (millis() - this.startTime) / 1000;
+        let t = constrain(elapsed / this.duration, 0, 1);
+        this.size = lerp(this.minSize, this.maxSize, t);
+    }
+
+    draw() {
+        this.update();
+        let x = width / 2 - this.size / 2;
+        let y = height / 2 - this.size / 2;
+        image(this.image, x, y, this.size, this.size);
+    }
+}
+
 function mousePressed() {
     if (game === "prior") {
         bottomVehicle.mousePressed();
@@ -257,6 +297,7 @@ function draw() {
     if (game == "prior") {
         background(roadbg);
         priorGame();
+        if (slider) slider.hide();
         // Draw feedback light
         if (feedbackLight === 'green') {
             fill(0, 255, 0);
@@ -269,8 +310,12 @@ function draw() {
     }
     if (game == "object") {
         objectGame();
+        if (slider) slider.hide();
     }
-
+    if (game == "sign") {
+        signGame();
+        if (slider) slider.show();
+    }
     
 }
 
@@ -365,4 +410,51 @@ function checkItemsRemovedCorrectly() {
         }
     }
     return true;
+}
+
+function signGame() {
+    if (!growingSign) {
+        // allowedSpeed: (px(40)-px(20))/5 = px(4) per second for 5 seconds
+        growingSign = new GrowingSign(bottomSignImg, 20);
+    }
+
+    // Draw the sign a bit higher
+    growingSign.update();
+    let signY = height / 2 - px(18) - growingSign.size / 2; // move sign up by px(18)
+    let signX = width / 2 - growingSign.size / 2;
+    image(growingSign.image, signX, signY, growingSign.size, growingSign.size);
+
+    // Update and display slider value
+    sliderValue = slider.value();
+
+    // Show value text further down (below the sign)
+    textAlign(CENTER, CENTER);
+    textSize(px(5));
+    fill(255);
+    text(sliderValue, width / 2, height / 2 + px(28)); // moved down by px(10)
+
+    // Move slider even lower (below the text)
+    slider.position(
+        width / 2 - px(20) + canvas.position().x,
+        height / 2 + px(33) + canvas.position().y // moved down by px(5)
+    );
+
+    // Check if sign is fully grown
+    if (growingSign.size >= growingSign.maxSize - 0.1) {
+        // Disable slider
+        slider.attribute('disabled', '');
+        // Compare slider value to allowedSpeed (convert allowedSpeed to int for comparison)
+        if (sliderValue == int(growingSign.allowedSpeed)) {
+            feedbackLight = 'green';
+        } else {
+            feedbackLight = 'red';
+        }
+        console.log(feedbackLight)
+    } else {
+        // Enable slider while growing
+        slider.removeAttribute('disabled');
+        feedbackLight = null;
+    }
+
+    slider.show();
 }
