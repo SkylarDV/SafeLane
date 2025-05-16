@@ -1,5 +1,5 @@
 let canvas;
-let game = "sign";
+let game = "park";
 let roadbg;
 let priorGameInitialized = false;
 let placementOrder = [];
@@ -10,6 +10,7 @@ let objectGameInitialized = false;
 let growingSign;
 let slider;
 let sliderValue = 10;
+let parkTargets = [];
 
 function preload() {
     roadbg = loadImage('../images/roadbg.png');
@@ -28,14 +29,29 @@ function setup() {
     positionCanvas();
     background(0);
 
-    // Create slider for signGame
     slider = createSlider(10, 100, 10, 10);
     slider.style('width', px(40) + 'px');
     slider.position(
         width / 2 - px(20) + canvas.position().x,
         height / 2 + px(25) + canvas.position().y
     );
-    slider.hide(); // Only show in signGame
+    slider.hide();
+
+    let games = [
+        { label: "Prioriteit", value: "prior" },
+        { label: "Objecten", value: "object" },
+        { label: "Verkeersbord", value: "sign" },
+        { label: "Parkeren", value: "park" }
+    ];
+    let btnX = canvas.position().x;
+    let btnY = canvas.position().y + height + 20; 
+    for (let i = 0; i < games.length; i++) {
+        let btn = createButton(games[i].label);
+        btn.position(btnX + i * 110, btnY); 
+        btn.mousePressed(() => {
+            game = games[i].value;
+        });
+    }
 }
 
 function windowResized() {
@@ -108,7 +124,7 @@ class Vehicle {
             this.y + this.height > this.targetZone.y &&
             this.y < this.targetZone.y + this.targetZone.height
         ) {
-            if (!this.inTargetZone) { // Only add to placementOrder if newly placed
+            if (!this.inTargetZone) { 
                 placementOrder.push(this.priority);
                 this.checkPlacementOrder();
             }
@@ -120,12 +136,12 @@ class Vehicle {
 
     checkPlacementOrder() {
         for (let i = 0; i < placementOrder.length; i++) {
-            if (placementOrder[i] !== i + 1) { // Priorities should be in ascending order
+            if (placementOrder[i] !== i + 1) { 
                 feedbackLight = 'red';
                 return;
             }
         }
-        if (placementOrder.length === 4) { // All vehicles placed correctly
+        if (placementOrder.length === 4) { 
             feedbackLight = 'green';
         }
     }
@@ -139,17 +155,11 @@ class Vehicle {
 }
 
 class Target {
-    constructor(x, y) {
+    constructor(x, y, width, height) {
         this.x = x;
         this.y = y;
-        this.width = px(30);
-        this.height = px(30);
-    }
-
-    draw() {
-        noStroke();
-        fill(255, 0, 0, 50)
-        rect(this.x, this.y, px(30), px(30));
+        this.width = width;
+        this.height = height;
     }
 }
 
@@ -176,7 +186,7 @@ class ItemSpot {
 
     draw() {
         noStroke();
-        fill(0, 255, 0, 50); // Light green, semi-transparent
+        fill(0, 255, 0, 50); 
         rect(this.x, this.y, this.width, this.height);
     }
 }
@@ -184,7 +194,7 @@ class ItemSpot {
 class Item {
     constructor(image, assignedSpot, necessary) {
         this.image = image;
-        this.assignedSpot = assignedSpot; // Instance of ItemSpot
+        this.assignedSpot = assignedSpot; 
         this.necessary = necessary;
         this.width = px(20);
         this.height = px(30);
@@ -209,7 +219,7 @@ class Item {
     mouseReleased() {
         if (this.isDragging) {
             this.isDragging = false;
-            // If dropped in top half, remove
+            
             if (this.y < height / 2) {
                 this.removed = true;
             }
@@ -234,11 +244,11 @@ class GrowingSign {
     constructor(image, allowedSpeed) {
         this.image = image;
         this.size = px(20);
-        this.allowedSpeed = allowedSpeed; // px per second
+        this.allowedSpeed = allowedSpeed; 
         this.startTime = null;
         this.maxSize = px(40);
         this.minSize = px(20);
-        this.duration = (this.maxSize - this.minSize) / this.allowedSpeed; // seconds
+        this.duration = (this.maxSize - this.minSize) / this.allowedSpeed; 
     }
 
     update() {
@@ -270,6 +280,11 @@ function mousePressed() {
             item.mousePressed();
         }
     }
+    if (game === "park") {
+        if (typeof parkVehicle !== "undefined") {
+            parkVehicle.mousePressed();
+        }
+    }
 }
 
 function mouseReleased() {
@@ -283,11 +298,38 @@ function mouseReleased() {
         for (let item of items) {
             item.mouseReleased();
         }
-        // Check after releasing any item
         if (checkItemsRemovedCorrectly()) {
             feedbackLight = 'green';
         } else {
             feedbackLight = 'red';
+        }
+    }
+    if (game === "park") {
+        if (typeof parkVehicle !== "undefined") {
+            parkVehicle.mouseReleased();
+
+            
+            let onTarget = false;
+            for (let i = 0; i < parkTargets.length; i++) {
+                let t = parkTargets[i];
+                if (
+                    parkVehicle.x + parkVehicle.width > t.x &&
+                    parkVehicle.x < t.x + t.width &&
+                    parkVehicle.y + parkVehicle.height > t.y &&
+                    parkVehicle.y < t.y + t.height
+                ) {
+                    onTarget = true;
+                    if (i === 4) { 
+                        feedbackLight = 'green';
+                    } else {
+                        feedbackLight = 'red';
+                    }
+                    break;
+                }
+            }
+            if (!onTarget) {
+                feedbackLight = null;
+            }
         }
     }
 }
@@ -297,16 +339,7 @@ function draw() {
     if (game == "prior") {
         background(roadbg);
         priorGame();
-        if (slider) slider.hide();
-        // Draw feedback light
-        if (feedbackLight === 'green') {
-            fill(0, 255, 0);
-        } else if (feedbackLight === 'red') {
-            fill(255, 0, 0);
-        } else {
-            fill(200); // Neutral light
-        }
-        ellipse(width - px(10), px(10), px(5), px(5)); // Light position
+        if (slider) slider.hide(); 
     }
     if (game == "object") {
         objectGame();
@@ -316,17 +349,22 @@ function draw() {
         signGame();
         if (slider) slider.show();
     }
-    
+    if (game == "park") {
+        if (typeof parkVehicle !== "undefined") {
+            parkVehicle.drag();
+        }
+        parkGame();
+        if (slider) slider.hide(); 
+    }
 }
 
 function priorGame() {
     if (!priorGameInitialized) {
-        // Create vehicles and target zones only once
 
-        targetZoneTop = new Target(px(35), px(0));
-        targetZoneBottom = new Target(px(35), px(70));
-        targetZoneLeft = new Target(px(0), px(35));
-        targetZoneRight = new Target(px(70), px(35));
+        targetZoneTop = new Target(px(35), px(0), px(30), px(30));
+        targetZoneBottom = new Target(px(35), px(70), px(30), px(30));
+        targetZoneLeft = new Target(px(0), px(35), px(30), px(30));
+        targetZoneRight = new Target(px(70), px(35), px(30), px(30));
         
         bottomVehicle = new Vehicle(bottomVehicleImg, px(52), px(70), px(10), px(30), targetZoneTop, 1);
         rightVehicle = new Vehicle(rightVehicleImg, px(70), px(35), px(30), px(10), targetZoneBottom, 3);
@@ -341,10 +379,6 @@ function priorGame() {
         priorGameInitialized = true;
     }
     if (priorGameInitialized) {
-        //targetZoneTop.draw();
-        //targetZoneBottom.draw();
-        //targetZoneLeft.draw();
-        //targetZoneRight.draw();
 
         bottomVehicle.drag();
         rightVehicle.drag();
@@ -365,7 +399,6 @@ function priorGame() {
 
 function objectGame() {
     if (!objectGameInitialized) {
-        // Calculate spacing
         let spacing = (width - 4 * px(20)) / 5;
         let y = height - px(30) - px(7);
         itemSpots = [];
@@ -398,14 +431,11 @@ function objectGame() {
 }
 
 function checkItemsRemovedCorrectly() {
-    // Returns true if all unnecessary items are removed and all necessary items are not removed
     for (let item of items) {
         if (item.necessary && item.removed) {
-            // A necessary item was removed (incorrect)
             return false;
         }
         if (!item.necessary && !item.removed) {
-            // An unnecessary item was not removed (incorrect)
             return false;
         }
     }
@@ -414,36 +444,28 @@ function checkItemsRemovedCorrectly() {
 
 function signGame() {
     if (!growingSign) {
-        // allowedSpeed: (px(40)-px(20))/5 = px(4) per second for 5 seconds
         growingSign = new GrowingSign(bottomSignImg, 20);
     }
 
-    // Draw the sign a bit higher
     growingSign.update();
-    let signY = height / 2 - px(18) - growingSign.size / 2; // move sign up by px(18)
+    let signY = height / 2 - px(18) - growingSign.size / 2;
     let signX = width / 2 - growingSign.size / 2;
     image(growingSign.image, signX, signY, growingSign.size, growingSign.size);
 
-    // Update and display slider value
     sliderValue = slider.value();
 
-    // Show value text further down (below the sign)
     textAlign(CENTER, CENTER);
     textSize(px(5));
-    fill(255);
-    text(sliderValue, width / 2, height / 2 + px(28)); // moved down by px(10)
+    fill(0); 
+    text(sliderValue, width / 2, height / 2 + px(28)); 
 
-    // Move slider even lower (below the text)
     slider.position(
         width / 2 - px(20) + canvas.position().x,
-        height / 2 + px(33) + canvas.position().y // moved down by px(5)
+        height / 2 + px(33) + canvas.position().y 
     );
 
-    // Check if sign is fully grown
     if (growingSign.size >= growingSign.maxSize - 0.1) {
-        // Disable slider
         slider.attribute('disabled', '');
-        // Compare slider value to allowedSpeed (convert allowedSpeed to int for comparison)
         if (sliderValue == int(growingSign.allowedSpeed)) {
             feedbackLight = 'green';
         } else {
@@ -451,10 +473,84 @@ function signGame() {
         }
         console.log(feedbackLight)
     } else {
-        // Enable slider while growing
         slider.removeAttribute('disabled');
         feedbackLight = null;
     }
 
     slider.show();
+}
+
+function parkGame() {
+    if (parkTargets.length === 0) {
+        parkTargets.length = 0; 
+
+        
+        let marginX = px(8);
+        let targetW = px(20);
+        let targetH = px(30);
+        let totalTargets = 3;
+        let totalHeight = totalTargets * targetH;
+        let spacingY = (height - totalHeight) / (totalTargets - 1);
+
+        
+        for (let i = 0; i < totalTargets; i++) {
+            let y = i * (targetH + spacingY);
+            parkTargets.push(new Target(marginX, y, targetW, targetH));
+        }
+        
+        for (let i = 0; i < totalTargets; i++) {
+            let y = i * (targetH + spacingY);
+            parkTargets.push(new Target(width - targetW - marginX, y, targetW, targetH));
+        }
+
+        
+        let vehicleW = px(20);
+        let vehicleH = px(30);
+        let vehicleX = width / 2 - vehicleW / 2;
+        let vehicleY = height - vehicleH - px(5); 
+       
+        parkVehicle = new Vehicle(
+            bottomVehicleImg,
+            vehicleX,
+            vehicleY,
+            vehicleW,
+            vehicleH,
+            parkTargets[4], 
+            1 
+        );
+    }
+
+    for (let t of parkTargets) {
+        fill(150);
+        noStroke();
+        rect(t.x, t.y, t.width, t.height);
+    }
+
+    if (typeof parkVehicle !== "undefined") {
+        parkVehicle.drag();
+        parkVehicle.draw();
+
+        let onTarget = false;
+        for (let i = 0; i < parkTargets.length; i++) {
+            let t = parkTargets[i];
+            if (
+                parkVehicle.x + parkVehicle.width > t.x &&
+                parkVehicle.x < t.x + t.width &&
+                parkVehicle.y + parkVehicle.height > t.y &&
+                parkVehicle.y < t.y + t.height
+            ) {
+                onTarget = true;
+                if (i === 4) { 
+                    feedbackLight = 'green';
+                } else {
+                    feedbackLight = 'red';
+                }
+                console.log(feedbackLight);
+                break;
+            }
+        }
+        if (!onTarget) {
+            feedbackLight = null;
+        }
+    }
 }
