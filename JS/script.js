@@ -1,13 +1,9 @@
 let canvas;
-let game = "prior";
-let bottomVehicleImg;
-let rightVehicleImg;
+let game = "object";
 let roadbg;
-let bottomVehicle;
-let rightVehicle;
-let leftVehicle;
-let topVehicle;
 let priorGameInitialized = false;
+let placementOrder = [];
+let feedbackLight = null;
 
 function preload() {
     roadbg = loadImage('../images/roadbg.png');
@@ -15,6 +11,10 @@ function preload() {
     rightVehicleImg = loadImage('../images/bus-right.png');
     leftVehicleImg = loadImage('../images/bus-left.png');
     topVehicleImg = loadImage('../images/bus-up.png');
+    topSignImg = loadImage('../images/voorrangsweg-top.png');
+    bottomSignImg = loadImage('../images/voorrangsweg-bottom.png');
+    leftSignImg = loadImage('../images/voorrang-geven-left.png');
+    rightSignImg = loadImage('../images/voorrang-geven-right.png');
 }
 
 function setup() {
@@ -44,7 +44,7 @@ function positionCanvas() {
         const yPos = (windowHeight - height) / 2;
         canvas.position(xPos, yPos);
     } else {
-        const xPos = windowWidth / 2 + (windowWidth / 4) - width / 2;
+        const xPos = windowWidth / 4 - width / 2;
         const yPos = (windowHeight / 2) - height / 2;
         canvas.position(xPos, yPos);
     }
@@ -60,7 +60,7 @@ class Vehicle {
         this.isDragging = false;
         this.targetZone = targetZone;
         this.inTargetZone = false;
-        this.priority = this.priority;
+        this.priority = priority;
     }
 
     mousePressed() {
@@ -93,9 +93,25 @@ class Vehicle {
             this.y + this.height > this.targetZone.y &&
             this.y < this.targetZone.y + this.targetZone.height
         ) {
+            if (!this.inTargetZone) { // Only add to placementOrder if newly placed
+                placementOrder.push(this.priority);
+                this.checkPlacementOrder();
+            }
             this.inTargetZone = true;
         } else {
             this.inTargetZone = false;
+        }
+    }
+
+    checkPlacementOrder() {
+        for (let i = 0; i < placementOrder.length; i++) {
+            if (placementOrder[i] !== i + 1) { // Priorities should be in ascending order
+                feedbackLight = 'red';
+                return;
+            }
+        }
+        if (placementOrder.length === 4) { // All vehicles placed correctly
+            feedbackLight = 'green';
         }
     }
 
@@ -121,26 +137,59 @@ class Target {
         rect(this.x, this.y, px(30), px(30));
     }
 }
+
+class TrafficSign {
+    constructor(image, x, y) {
+        this.image = image;
+        this.x = x;
+        this.y = y;
+        this.width = px(10);
+        this.height = px(10);
+    }
+
+    draw() {
+        image(this.image, this.x, this.y, this.width, this.height);
+    }
+}
+
 function mousePressed() {
-    bottomVehicle.mousePressed();
-    rightVehicle.mousePressed();
-    leftVehicle.mousePressed();
-    topVehicle.mousePressed();
+    if (game === "prior") {
+        bottomVehicle.mousePressed();
+        rightVehicle.mousePressed();
+        leftVehicle.mousePressed();
+        topVehicle.mousePressed();
+    }
 }
 
 function mouseReleased() {
-    bottomVehicle.mouseReleased();
-    rightVehicle.mouseReleased();
-    leftVehicle.mouseReleased();
-    topVehicle.mouseReleased();
+    if (game === "prior") {
+        bottomVehicle.mouseReleased();
+        rightVehicle.mouseReleased();
+        leftVehicle.mouseReleased();
+        topVehicle.mouseReleased();
+    }
 }
 
 function draw() {
     clear();
-    background(roadbg);
     if (game == "prior") {
+        background(roadbg);
         priorGame();
+        // Draw feedback light
+        if (feedbackLight === 'green') {
+            fill(0, 255, 0);
+        } else if (feedbackLight === 'red') {
+            fill(255, 0, 0);
+        } else {
+            fill(200); // Neutral light
+        }
+        ellipse(width - px(10), px(10), px(5), px(5)); // Light position
     }
+    if (game == "object") {
+        objectGame();
+    }
+
+    
 }
 
 function priorGame() {
@@ -157,26 +206,41 @@ function priorGame() {
         leftVehicle = new Vehicle(leftVehicleImg, px(0), px(50), px(30), px(10), targetZoneRight, 2);
         topVehicle = new Vehicle(topVehicleImg, px(38), px(0), px(10), px(30), targetZoneLeft, 4);
 
+        sign1 = new TrafficSign(topSignImg, px(24), px(23));
+        sign2 = new TrafficSign(leftSignImg, px(24), px(63));
+        sign3 = new TrafficSign(bottomSignImg, px(67), px(63));
+        sign4 = new TrafficSign(rightSignImg, px(67), px(23));
+        
         priorGameInitialized = true;
     }
     if (priorGameInitialized) {
-        targetZoneTop.draw();
-        targetZoneBottom.draw();
-        targetZoneLeft.draw();
-        targetZoneRight.draw();
+        //targetZoneTop.draw();
+        //targetZoneBottom.draw();
+        //targetZoneLeft.draw();
+        //targetZoneRight.draw();
 
         bottomVehicle.drag();
         rightVehicle.drag();
         leftVehicle.drag();
-        //topVehicle.drag();
+        topVehicle.drag();
 
         bottomVehicle.draw();
         rightVehicle.draw();
         leftVehicle.draw();
-        //topVehicle.draw();
+        topVehicle.draw();
+        
+        sign1.draw();
+        sign2.draw();
+        sign3.draw();
+        sign4.draw();
     }
-
-    
 }
 
-
+function objectGame() {
+    for (let y = 0; y < height; y++) {
+        let inter = map(y, 0, height, 0, 1);
+        let c = lerpColor(color('#1E3C51'), color('#192C3A'), inter);
+        stroke(c);
+        line(0, y, width, y);
+    }
+}
