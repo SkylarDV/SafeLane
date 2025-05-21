@@ -1,3 +1,22 @@
+<?php
+// Database connection
+$mysqli = new mysqli("localhost", "root", "root", "safelane");
+if ($mysqli->connect_errno) {
+    die("Failed to connect: " . $mysqli->connect_error);
+}
+
+// Get ID from URL
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$regel = null;
+if ($id > 0) {
+    $stmt = $mysqli->prepare("SELECT Title, Text, Image_Url, Banner_Url FROM newrules WHERE ID = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $regel = $result->fetch_assoc();
+    $stmt->close();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,12 +47,17 @@ body {
 }
 
 .sidemenu {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
     width: 220px;
     background-color: #f4f7fa;
     padding: 30px 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    z-index: 100;
 }
 
 .logo {
@@ -83,9 +107,12 @@ body {
 }
 
 .main {
+    margin-left: 220px; /* Same as sidemenu width */
     flex: 1;
     background-color: white;
     padding: 40px;
+    min-height: 100vh;
+    overflow-x: auto;
 }
 
 .main h1 {
@@ -211,17 +238,21 @@ body {
             <div class="wrapy">
                 <div class="content">
                 <div class="video">
-                    <div class="play">&#9658</div>
+                    <div class="play">&#9658;</div>
                 </div>
                 <div class="info">
-                    <h2>Vierkant Groen</h2>
-                    <img src="images/vierkantgroen.png" alt="Vierkant Groen img">
-                    <p>Bij vierkant groen krijgen alle fietsers en/of voetgangers tegelijk groen licht, terwijl het gemotoriseerd verkeer rood licht heeft.</p>
-                    <p>Als u dit licht ziet, dan wordt u verteld dat ook andere fietsers en voetgangers op hetzelfde moment groen kunnen hebben. Het is dan niet verboden om als linksafslaande fietser schuin over te steken, maar het is waarschijnlijk veiliger om gewoon L-vormig rond het kruispunt te fietsen via de fietspaden. Wel voorrang geven van rechts, uiteraard.</p>
+                    <?php if ($regel): ?>
+                        <h2><?php echo htmlspecialchars($regel['Title']); ?></h2>
+                        <img src="<?php echo htmlspecialchars($regel['Image_Url'] ?: $regel['Banner_Url']); ?>" alt="Regel afbeelding">
+                        <p><?php echo nl2br(htmlspecialchars($regel['Text'])); ?></p>
+                    <?php else: ?>
+                        <h2>Regel niet gevonden</h2>
+                        <p>Deze regel bestaat niet.</p>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="button-rightside">
-                <a href="" class="button">Volgende</a>   
+                <a href="regels.php" class="button">Terug</a>   
             </div>
             </div>
     </div>

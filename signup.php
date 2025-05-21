@@ -1,3 +1,43 @@
+<?php
+$message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $mysqli = new mysqli("localhost", "root", "root", "safelane");
+    if ($mysqli->connect_errno) {
+        die("Failed to connect: " . $mysqli->connect_error);
+    }
+
+    $username = trim($_POST['username'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if ($username && $email && $password) {
+        // Check if email already exists
+        $stmt = $mysqli->prepare("SELECT Email FROM users WHERE Email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+        if ($stmt->num_rows > 0) {
+            $message = "Dit e-mailadres is al geregistreerd.";
+        } else {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $mysqli->prepare(
+                "INSERT INTO users (Username, Image_Url, Email, Password, Sign_Score, Park_Score, Speed_Score, Light_Score, Prior_Score, Progress)
+                 VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0, 0)"
+            );
+            $stmt->bind_param("sss", $username, $email, $hash);
+            if ($stmt->execute()) {
+                header("Location: login.php");
+                exit;
+            } else {
+                $message = "Registratie mislukt. Probeer opnieuw.";
+            }
+        }
+        $stmt->close();
+    } else {
+        $message = "Vul alle velden in.";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,10 +117,13 @@
 <body>
     <div class="formm">
         <h2>Registreren</h2>
-        <form action="home.html" method="post">
-          <input type="text" placeholder="Naam" required />
-          <input type="email" placeholder="Email" required />
-          <input type="password" placeholder="Wachtwoord" required />
+        <?php if (!empty($message)): ?>
+            <div style="color: red; text-align: center; margin-bottom: 15px;"><?php echo htmlspecialchars($message); ?></div>
+        <?php endif; ?>
+        <form action="signup.php" method="post">
+          <input type="text" name="username" placeholder="Naam" required />
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="password" name="password" placeholder="Wachtwoord" required />
           <button type="submit">Account aanmaken</button>
         </form>
         <div class="link">

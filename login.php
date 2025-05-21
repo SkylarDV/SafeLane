@@ -1,3 +1,36 @@
+<?php
+session_start();
+$message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $mysqli = new mysqli("localhost", "root", "root", "safelane");
+    if ($mysqli->connect_errno) {
+        die("Failed to connect: " . $mysqli->connect_error);
+    }
+
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if ($email && $password) {
+        $stmt = $mysqli->prepare("SELECT ID, Username, Password FROM users WHERE Email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        $stmt->close();
+
+        if ($user && password_verify($password, $user['Password'])) {
+            $_SESSION['user_id'] = $user['ID'];
+            $_SESSION['username'] = $user['Username'];
+            header("Location: home.php");
+            exit;
+        } else {
+            $message = "Ongeldig e-mailadres of wachtwoord.";
+        }
+    } else {
+        $message = "Vul alle velden in.";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,13 +110,16 @@
 <body>
     <div class="formm">
         <h2>Login</h2>
-        <form action="home.html" method="post">
-          <input type="email" placeholder="Email" required />
-          <input type="password" placeholder="Wachtwoord" required />
+        <?php if (!empty($message)): ?>
+            <div style="color: red; text-align: center; margin-bottom: 15px;"><?php echo htmlspecialchars($message); ?></div>
+        <?php endif; ?>
+        <form action="login.php" method="post">
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="password" name="password" placeholder="Wachtwoord" required />
           <button type="submit">Inloggen</button>
         </form>
         <div class="link">
-          Nog geen account? <a href="signin.php">Registreer</a>
+          Nog geen account? <a href="signup.php">Registreer</a>
         </div>
       </div>
 </body>

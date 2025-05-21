@@ -1,3 +1,83 @@
+<?php
+$mysqli = new mysqli('localhost', 'root', 'root', 'safelane');
+if ($mysqli->connect_errno) {
+    die("Connection failed: " . $mysqli->connect_error);
+}
+
+$userId = 1; // Placeholder for active user
+
+// Handle form submission
+$message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['group_name'] ?? '');
+    $type = $_POST['group_type'] ?? '';
+    $parent = null;
+    if ($type === 'subgroep') {
+        $parent = $_POST['parent_group'] ?? null;
+        if ($parent === '') $parent = null;
+    }
+    if ($name !== '') {
+        $stmt = $mysqli->prepare("INSERT INTO groups (Name, Parent_Group_ID) VALUES (?, ?)");
+        $stmt->bind_param('si', $name, $parent);
+        if ($stmt->execute()) {
+            $newGroupId = $mysqli->insert_id;
+
+            // 1. Add the active user to the group
+            $mysqli->query("INSERT INTO `user-group` (User_ID, Group_ID, Score) VALUES ($userId, $newGroupId, 0)");
+
+            // 2. Handle invites
+            $inviteMembers = trim($_POST['invite_members'] ?? '');
+            if ($inviteMembers !== '') {
+                $inviteList = array_map('trim', explode(',', $inviteMembers));
+                $added = [];
+                if ($type === 'subgroep' && $parent) {
+                    // Only users in the parent group
+                    $parentUsers = [];
+                    $res = $mysqli->query("SELECT User_ID FROM `user-group` WHERE Group_ID = $parent");
+                    while ($row = $res->fetch_assoc()) {
+                        $parentUsers[] = $row['User_ID'];
+                    }
+                }
+                foreach ($inviteList as $invite) {
+                    if ($invite === '') continue;
+                    // Find user by username or email
+                    $inviteEscaped = $mysqli->real_escape_string($invite);
+                    $userRes = $mysqli->query("SELECT ID FROM users WHERE Username = '$inviteEscaped' OR Email = '$inviteEscaped' LIMIT 1");
+                    if ($user = $userRes->fetch_assoc()) {
+                        $inviteId = $user['ID'];
+                        // For subgroups, only add if user is in parent group
+                        if ($type === 'subgroep' && $parent && !in_array($inviteId, $parentUsers)) {
+                            continue;
+                        }
+                        // Don't add the active user again
+                        if ($inviteId == $userId) continue;
+                        // Add user to group if not already added
+                        $mysqli->query("INSERT IGNORE INTO `user-group` (User_ID, Group_ID, Score) VALUES ($inviteId, $newGroupId, 0)");
+                        $added[] = $invite;
+                    }
+                }
+            }
+
+            $message = "Groep succesvol aangemaakt!";
+        } else {
+            $message = "Fout bij aanmaken groep: " . $mysqli->error;
+        }
+        $stmt->close();
+    } else {
+        $message = "Vul een naam in.";
+    }
+}
+
+// Fetch groups for the user (for subgroep select)
+// Only allow groups that are NOT subgroups themselves
+$userGroups = [];
+$res = $mysqli->query("SELECT g.ID, g.Name FROM groups g
+    JOIN `user-group` ug ON ug.Group_ID = g.ID
+    WHERE ug.User_ID = $userId AND g.Parent_Group_ID IS NULL");
+while ($row = $res->fetch_assoc()) {
+    $userGroups[] = $row;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -160,19 +240,55 @@
       <h1>Groep aanmaken</h1>
       <section class="section">
         <div class="form">
-          <label>Informatie</label>
-          <select>
-            <option>Team 1</option>
-            <option>Team 2</option>
-          </select>
-          <input type="text" placeholder="Naam" />
-          <input type="text" placeholder="Nodig uit met gebruikersnaam" />
-          <div class="button-rightside">
-            <a href="#" class="button">Groep aanmaken</a>
-          </div>
+          <?php if ($message === "Groep succesvol aangemaakt!"): ?>
+            <div style="color: green; margin-bottom: 20px; font-size: 1.2em;">
+              <?= htmlspecialchars($message) ?>
+            </div>
+            <div style="text-align:center;">
+              <a href="scorebord.php" class="button">Terug naar Scorebord</a>
+            </div>
+          <?php else: ?>
+            <?php if ($message): ?>
+              <div style="color: green; margin-bottom: 10px;"><?= htmlspecialchars($message) ?></div>
+            <?php endif; ?>
+            <form method="post" id="groupForm">
+              <label>Informatie</label>
+              <select name="group_type" id="group_type" required>
+                <option value="">Nieuwe Groep of Subgroep</option>
+                <option value="groep">Nieuwe Groep</option>
+                <option value="subgroep">Subgroep van bestaande Groep</option>
+              </select>
+              <div id="parentGroupSelect" style="display:none; margin-bottom: 20px;">
+                <select name="parent_group" id="parent_group">
+                  <option value="">Kies hoofdgroep</option>
+                  <?php foreach ($userGroups as $g): ?>
+                    <option value="<?= $g['ID'] ?>"><?= htmlspecialchars($g['Name']) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <input type="text" name="group_name" placeholder="Naam" required />
+              <label for="invite_members">Leden uitnodigen (komma-gescheiden e-mails of gebruikersnamen):</label>
+              <input type="text" name="invite_members" id="invite_members" placeholder="bijv. jan@voorbeeld.nl, pietje, ..." />
+              <div class="button-rightside">
+                <button type="submit" class="button">Groep aanmaken</button>
+              </div>
+            </form>
+          <?php endif; ?>
         </div>
       </section>
     </main>
   </div>
+  <script>
+    document.getElementById('group_type').addEventListener('change', function() {
+        var parentDiv = document.getElementById('parentGroupSelect');
+        if (this.value === 'subgroep') {
+            parentDiv.style.display = 'block';
+            document.getElementById('parent_group').required = true;
+        } else {
+            parentDiv.style.display = 'none';
+            document.getElementById('parent_group').required = false;
+        }
+    });
+  </script>
 </body>
 </html>

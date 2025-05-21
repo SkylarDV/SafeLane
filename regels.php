@@ -1,3 +1,17 @@
+<?php
+// Database connection
+$mysqli = new mysqli("localhost", "root", "root", "safelane");
+if ($mysqli->connect_errno) {
+    die("Failed to connect: " . $mysqli->connect_error);
+}
+$result = $mysqli->query("SELECT ID, Banner_Url, Title, Text FROM newrules");
+$cards = [];
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $cards[] = $row;
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -188,71 +202,25 @@
       </div>
 
       <div class="grid">
+        <?php foreach ($cards as $card): ?>
         <div class="card">
           <div class="thumb">
-            <img src="images/vierkant.png" alt="Thumbnail">
-            <div class="play">&#9658;</div>
+            <img src="<?php echo htmlspecialchars($card['Banner_Url']); ?>" alt="Thumbnail">
+            <a href="regel.php?id=<?php echo $card['ID']; ?>" class="play" style="text-decoration:none;color:white;">&#9658;</a>
           </div>
           <div class="text">
-            <h2>Vierkant groen</h2>
-            <p>Bij vierkant groen krijgen alle fietsers en/of voetgangers ...</p>
+            <h2><?php echo htmlspecialchars($card['Title']); ?></h2>
+            <p>
+              <?php
+                // Get first ~15 words
+                $words = explode(' ', strip_tags($card['Text']));
+                echo htmlspecialchars(implode(' ', array_slice($words, 0, 15)));
+                if (count($words) > 15) echo '...';
+              ?>
+            </p>
           </div>
         </div>
-
-        <div class="card">
-          <div class="thumb">
-            <img src="images/fiets.png" alt="Thumbnail">
-            <div class="play">&#9658;</div>
-          </div>
-          <div class="text">
-            <h2>Fietstraat: wat verandert er?</h2>
-            <p>In fietsstraten krijgen fietsers absolute voorrang en mag je ...</p>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="thumb">
-            <img src="images/lights.png" alt="Thumbnail">
-            <div class="play">&#9658;</div>
-          </div>
-          <div class="text">
-            <h2>Rechtsaf door rood</h2>
-            <p>Sommige verkeerslichten geven fietsers en speedpedelecs ...</p>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="thumb">
-            <img src="images/step.png" alt="Thumbnail">
-            <div class="play">&#9658;</div>
-          </div>
-          <div class="text">
-            <h2>Parkeerregels deelsteps</h2>
-            <p>Deelsteps mogen niet langer zomaar achtergelaten worden op het voetpad...</p>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="thumb">
-            <img src="images/emergency.png" alt="Thumbnail">
-            <div class="play">&#9658;</div>
-          </div>
-          <div class="text">
-            <h2>Nieuwe tekens hulpdienst</h2>
-            <p>Er komen nieuwe verkeersborden en markeringen om ...</p>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="thumb">
-            <img src="images/wiel.png" alt="Thumbnail">
-            <div class="play">&#9658;</div>
-          </div>
-          <div class="text">
-            <h2>E-bikes op de autosnelweg?</h2>
-            <p>Speedpedelecs, die tot 45 km/u gaan, mogen onder strikte voorwaarden ...</p>
-          </div>
-        </div>
+        <?php endforeach; ?>
       </div>
     </main>
   </div>

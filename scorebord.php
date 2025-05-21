@@ -283,12 +283,13 @@
               $rank = 1;
               foreach ($group['players'] as $player):
                   $img = !empty($player['Image_Url']) ? htmlspecialchars($player['Image_Url']) : $placeholder;
+                  $isActive = ($player['User_ID'] == 1);
               ?>
-              <div class="player<?php if ($player['Username'] === 'Jij') echo ' highlight'; ?>">
+              <div class="player<?php if ($isActive) echo ' highlight'; ?>">
                   <div class="playerInfo">
                       <span><?= $rank ?></span>
                       <img src="<?= $img ?>" alt="<?= htmlspecialchars($player['Username']) ?>"/>
-                      <span class="name"><?= htmlspecialchars($player['Username']) ?></span>
+                      <span class="name"><?= $isActive ? 'Jij' : htmlspecialchars($player['Username']) ?></span>
                   </div>
                   <div class="score"><?= (int)$player['Score'] ?></div>
               </div>
