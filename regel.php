@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rule</title>
     <link rel="stylesheet" href="CS/normalize.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
@@ -68,13 +69,17 @@ body {
     margin-right: 10px;
 }
 
+.icon {
+        font-style: normal;
+    }
+
 .navLink.active {
     background-color: #d9e6f2;
     color: #1b2c40;
 }
 
 .navLink:hover {
-    font-style: italic;
+    text-decoration: underline;
 }
 
 .main {
@@ -86,7 +91,25 @@ body {
 .main h1 {
     color: #4e6e85;
     margin-bottom: 30px;
-    text-align: center;
+    text-align: left;
+}
+
+.pageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    }
+
+.pageTitle {
+    font-size: 30px;
+    font-weight: bold;
+    color: #4e6e85;
+}
+
+.headerIcons {
+    font-size: 24px;
+    color: #4e6e85;
 }
 
 .content {
@@ -102,6 +125,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 20px;
+    margin-top: 40px;
 }
 
 .play {
@@ -111,7 +136,9 @@ body {
 }
 
 .info {
-    background-color: #f3f7fa;
+    background-color: white;
+    margin-top: 40px;
+    margin-right: 20px;
     padding: 25px;
     border-radius: 15px;
     flex: 1;
@@ -133,10 +160,15 @@ body {
     border-radius: 8px;
 }
 
+.wrapy {
+    background-color: #f3f7fa;
+}
 .button-rightside {
     display: flex;
     justify-content: flex-end;
-    margin-top: 30px;
+    margin-top: 5px;
+    padding-bottom: 10px;
+    margin-right: 20px;
 }
 
 .button {
@@ -149,7 +181,6 @@ body {
     text-decoration: none;
     font-size: 18px;
     font-weight: bold;
-    transition: background-color 0.3s;
 }
 
 .button:hover {
@@ -162,16 +193,23 @@ body {
         <nav class="sidemenu">
             <div class="logo"><img src="images/newLogo.png"><br><span>Safelane</span></div>
             <ul class="list">
-                <li><a href="#" class="navLink"><i class="icon">🏠</i>Startscherm</a></li>
-                <li><a href="#" class="navLink"><i class="icon">🏆</i>Scorebord</a></li>
-                <li><a href="#" class="navLink"><i class="icon">📊</i>Resultaten</a></li>
-                <li><a href="#" class="navLink active"><i class="icon">📝</i>Nieuwe regels</a></li>
+                <li><a href="home.php" class="navLink"><i class="icon">🏠</i>Startscherm</a></li>
+                <li><a href="scorebord.php" class="navLink "><i class="icon">🏆</i>Scorebord</a></li>
+                <li><a href="resultaten.php" class="navLink"><i class="icon">📊</i>Resultaten</a></li>
+                <li><a href="regels.php" class="navLink active"><i class="icon">📝</i>Nieuwe regels</a></li>
             </ul>
         </nav>
 
         <div class="main">
-            <h1>Nieuwe regel</h1>
-            <div class="content">
+            <div class="pageHeader">
+                <h1 class="pageTitle">Nieuwe regels</h1>
+                <div class="headerIcons">
+                    <i class="ri-car-line"></i>
+                </div>
+            </div>
+
+            <div class="wrapy">
+                <div class="content">
                 <div class="video">
                     <div class="play">&#9658</div>
                 </div>
@@ -185,7 +223,7 @@ body {
             <div class="button-rightside">
                 <a href="" class="button">Volgende</a>   
             </div>
+            </div>
     </div>
-  </div> 
 </body>
 </html>
