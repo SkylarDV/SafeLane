@@ -41,14 +41,13 @@ $user_id = $_SESSION['user_id']; // Add this line
       flex-direction: row;
       height: 100vh;
       overflow: hidden;
-      margin-left: 220px; /* Always leave space for sidebar */
       transition: margin-left 0.3s;
     }
 
     .sidemenu {
       width: 220px;
       background-color: #f4f7fa;
-      padding: 30px 15px;
+      padding: 30px 0 0 0; /* Only top padding, no left/right */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -322,6 +321,16 @@ $user_id = $_SESSION['user_id']; // Add this line
       .main {
         margin-left: -220px; /* Remove the margin when sidebar is open on mobile */
         transition: margin-left 0.3s;
+      }
+      .logo {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center horizontally */
+        justify-content: center;
+        text-align: center;
+        margin-left: 0;
+        margin-right: 0;
       }
     }
 

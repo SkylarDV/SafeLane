@@ -109,6 +109,7 @@ while ($row = $res->fetch_assoc()) {
     .everything {
       display: flex;
       height: 100vh;
+      width: 100vw;
     }
 
     .sidemenu {
@@ -188,6 +189,9 @@ while ($row = $res->fetch_assoc()) {
       background-color: #ffffff;
       overflow-y: auto;
       min-height: 100vh;
+      width: 100%;
+      margin-left: 0;
+      box-sizing: border-box;
     }
 
     .main h1 {
@@ -293,6 +297,7 @@ while ($row = $res->fetch_assoc()) {
     @media screen and (max-width: 768px) {
       .everything {
         flex-direction: column;
+        width: 100vw; /* Ensure full width on mobile too */
       }
 
       .hamburger {
@@ -354,6 +359,8 @@ while ($row = $res->fetch_assoc()) {
         padding: 20px;
         font-size: 14px;
         padding-top: 60px;
+        width: 100vw; /* Add this line for mobile */
+        box-sizing: border-box;
       }
 
       main h1 {
