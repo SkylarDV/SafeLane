@@ -1,10 +1,7 @@
 <?php
+require_once 'db.php';
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $mysqli = new mysqli("localhost", "root", "root", "safelane");
-    if ($mysqli->connect_errno) {
-        die("Failed to connect: " . $mysqli->connect_error);
-    }
 
     $username = trim($_POST['username'] ?? '');
     $email = trim($_POST['email'] ?? '');

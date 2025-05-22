@@ -1,3 +1,7 @@
+<?php
+require_once 'db.php';
+// You can now use $mysqli for any queries on this page
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

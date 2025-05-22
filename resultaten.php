@@ -166,11 +166,11 @@ main {
 </head>
 <body>
     <?php
-    $mysqli = new mysqli('localhost', 'root', 'root', 'safelane');
-    if ($mysqli->connect_errno) {
-        die("Connection failed: " . $mysqli->connect_error);
-    }
-    $sql = "SELECT Sign_Score, Park_Score, Speed_Score, Light_Score, Prior_Score FROM users WHERE ID=1";
+    require_once 'db.php';
+    // Optionally, use the logged-in user's ID from the session
+    $userId = 1; // Replace with $_SESSION['user_id'] if using sessions
+
+    $sql = "SELECT Sign_Score, Park_Score, Speed_Score, Light_Score, Prior_Score FROM users WHERE ID = $userId";
     $result = $mysqli->query($sql);
     $scores = [0, 0, 0, 0, 0];
     if ($row = $result->fetch_assoc()) {
@@ -182,7 +182,6 @@ main {
             (int)$row['Prior_Score']
         ];
     }
-    $mysqli->close();
     ?>
     <div class="around">
         <nav class="sidemenu">

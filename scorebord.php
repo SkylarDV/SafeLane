@@ -226,14 +226,11 @@
 
     <div class="main">
       <?php
-      $mysqli = new mysqli('localhost', 'root', 'root', 'safelane');
-      if ($mysqli->connect_errno) {
-          die("Connection failed: " . $mysqli->connect_error);
-      }
+      require_once 'db.php';
 
       // Get all groups
       $groups = [];
-      $groupResult = $mysqli->query("SELECT ID, Name FROM groups");
+      $groupResult = $mysqli->query("SELECT ID, Name FROM `groups`");
       while ($group = $groupResult->fetch_assoc()) {
           $groups[$group['ID']] = [
               'name' => $group['Name'],

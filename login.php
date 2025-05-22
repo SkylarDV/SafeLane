@@ -1,12 +1,9 @@
 <?php
 session_start();
+require_once 'db.php'; // Use the shared database connection
+
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $mysqli = new mysqli("localhost", "root", "root", "safelane");
-    if ($mysqli->connect_errno) {
-        die("Failed to connect: " . $mysqli->connect_error);
-    }
-
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 

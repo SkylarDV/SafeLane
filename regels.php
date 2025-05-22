@@ -1,9 +1,6 @@
 <?php
-// Database connection
-$mysqli = new mysqli("localhost", "root", "root", "safelane");
-if ($mysqli->connect_errno) {
-    die("Failed to connect: " . $mysqli->connect_error);
-}
+require_once 'db.php';
+
 $result = $mysqli->query("SELECT ID, Banner_Url, Title, Text FROM newrules");
 $cards = [];
 if ($result) {

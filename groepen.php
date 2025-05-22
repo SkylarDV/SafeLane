@@ -1,8 +1,5 @@
 <?php
-$mysqli = new mysqli('localhost', 'root', 'root', 'safelane');
-if ($mysqli->connect_errno) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
+require_once 'db.php';
 
 $userId = 1; // Placeholder for active user
 
@@ -17,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($parent === '') $parent = null;
     }
     if ($name !== '') {
-        $stmt = $mysqli->prepare("INSERT INTO groups (Name, Parent_Group_ID) VALUES (?, ?)");
+        $stmt = $mysqli->prepare("INSERT INTO `groups` (Name, Parent_Group_ID) VALUES (?, ?)");
         $stmt->bind_param('si', $name, $parent);
         if ($stmt->execute()) {
             $newGroupId = $mysqli->insert_id;
@@ -71,8 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Fetch groups for the user (for subgroep select)
 // Only allow groups that are NOT subgroups themselves
 $userGroups = [];
-$res = $mysqli->query("SELECT g.ID, g.Name FROM groups g
-    JOIN `user-group` ug ON ug.Group_ID = g.ID
+$res = $mysqli->query("SELECT g.ID, g.Name FROM `groups` AS g
+    JOIN `user-group` AS ug ON ug.Group_ID = g.ID
     WHERE ug.User_ID = $userId AND g.Parent_Group_ID IS NULL");
 while ($row = $res->fetch_assoc()) {
     $userGroups[] = $row;

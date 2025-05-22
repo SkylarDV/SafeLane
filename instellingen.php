@@ -1,3 +1,13 @@
+<?php
+require_once 'db.php';
+$groupId = 1; // Replace with the actual group ID you want to show
+$leden = [];
+$res = $mysqli->query("SELECT u.Username, u.Image_Url FROM `user-group` ug JOIN users u ON ug.User_ID = u.ID WHERE ug.Group_ID = $groupId");
+while ($row = $res->fetch_assoc()) {
+    $leden[] = $row;
+}
+$placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,12 +37,17 @@
         }
 
         .sidemenu {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
             width: 220px;
             background-color: #f4f7fa;
             padding: 30px 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            z-index: 100;
         }
 
         .logo {
@@ -81,10 +96,12 @@
         }
 
         main {
-            flex-grow: 1;
-            padding: 40px;
+            margin-left: 220px; /* Same as sidemenu width */
+            flex: 1;
             background-color: #ffffff;
-            overflow-y: auto;
+            padding: 40px;
+            min-height: 100vh;
+            overflow-x: auto;
         }
 
         .main h1 {
@@ -97,13 +114,9 @@
             padding: 30px;
             border-radius: 8px;
             width: 100%;
-            height: 100%;
             margin-bottom: 40px;
-        }
-
-        .section h1 {
-            margin-bottom: 20px;
-            color: #2c3e50;
+            /* Add this to ensure it wraps content */
+            box-sizing: border-box;
         }
 
         .form label {
@@ -119,6 +132,12 @@
             border: none;
             border-radius: 6px;
             background-color: #ffffff;
+        }
+
+        .leden {
+            background: none; /* Remove if you had a background here */
+            padding: 0;
+            border-radius: 0;
         }
 
         .leden h3 {
@@ -207,10 +226,12 @@
 
                     <div class="leden">
                         <h3>Leden</h3>
-                        <div class="lid"><img src="images/Senne.jpeg"><span>Senne L.</span></div>
-                        <div class="lid"><img src="images/Lola.jpeg"><span>Lola M.</span></div>
-                        <div class="lid"><img src="images/Anais.jpeg"><span>Anaïs J.</span></div>
-                        <div class="lid"><img src="images/Vicky.jpeg"><span>Vicky R.</span></div>
+                        <?php foreach ($leden as $lid): ?>
+                            <div class="lid">
+                                <img src="<?php echo htmlspecialchars($lid['Image_Url'] ?: $placeholder); ?>">
+                                <span><?php echo htmlspecialchars($lid['Username']); ?></span>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
 
                     <div class="button-rightside">

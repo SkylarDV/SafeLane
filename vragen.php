@@ -1,17 +1,12 @@
 <?php
+require_once 'db.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_progress'])) {
     $user_id = intval($_POST['user_id']);
     $progress = intval($_POST['progress']);
 
-    $conn = new mysqli("localhost", "root", "root", "safelane");
-    if ($conn->connect_error) {
-        http_response_code(500);
-        echo "Connection failed: " . $conn->connect_error;
-        exit;
-    }
-
     $sql = "UPDATE users SET Progress = ? WHERE ID = ?";
-    $stmt = $conn->prepare($sql);
+    $stmt = $mysqli->prepare($sql);
     $stmt->bind_param("ii", $progress, $user_id);
     $stmt->execute();
 
@@ -22,21 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_progress'])) {
         echo "Failed to update progress";
     }
     $stmt->close();
-    $conn->close();
     exit; // Prevent further output for AJAX
 }
 
-// Now continue with your normal page logic:
-$conn = new mysqli("localhost", "root", "root", "safelane");
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
 // Fetch user's progress (for user ID 1)
-$user_id = 1;
+$user_id = 1; // Or use $_SESSION['user_id'] if available
 $progress = 0;
 $progress_sql = "SELECT Progress FROM users WHERE ID = ?";
-$progress_stmt = $conn->prepare($progress_sql);
+$progress_stmt = $mysqli->prepare($progress_sql);
 $progress_stmt->bind_param("i", $user_id);
 $progress_stmt->execute();
 $progress_stmt->bind_result($progress);
@@ -46,7 +34,7 @@ $progress_stmt->close();
 $seven_days_ago = date('Y-m-d', strtotime('-7 days'));
 
 $sql = "SELECT Question_ID, Type, Question_Text FROM questionlist WHERE Date >= ? ORDER BY Date ASC";
-$stmt = $conn->prepare($sql);
+$stmt = $mysqli->prepare($sql);
 $stmt->bind_param("s", $seven_days_ago);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -67,7 +55,7 @@ if ($result && $result->num_rows > 0) {
                              Top_Priority, Left_Priority, Right_Priority, Bottom_Priority
                       FROM `prior-question`
                       WHERE ID = ?";
-            $prior_stmt = $conn->prepare($prior_sql);
+            $prior_stmt = $mysqli->prepare($prior_sql);
             $prior_stmt->bind_param("i", $row['Question_ID']);
             $prior_stmt->execute();
             $prior_result = $prior_stmt->get_result();
@@ -85,7 +73,7 @@ if ($result && $result->num_rows > 0) {
                 foreach ($vehicle_positions as $id_key => $sprite_key) {
                     if (!empty($prior_data[$id_key])) {
                         $sprite_sql = "SELECT Image_Url FROM `vehicle-sprites` WHERE ID = ?";
-                        $sprite_stmt = $conn->prepare($sprite_sql);
+                        $sprite_stmt = $mysqli->prepare($sprite_sql);
                         $sprite_stmt->bind_param("i", $prior_data[$id_key]);
                         $sprite_stmt->execute();
                         $sprite_result = $sprite_stmt->get_result();
@@ -103,7 +91,7 @@ if ($result && $result->num_rows > 0) {
 
                 if (!empty($prior_data['Background_ID'])) {
                     $bg_sql = "SELECT Image_Url FROM `backgrounds` WHERE ID = ?";
-                    $bg_stmt = $conn->prepare($bg_sql);
+                    $bg_stmt = $mysqli->prepare($bg_sql);
                     $bg_stmt->bind_param("i", $prior_data['Background_ID']);
                     $bg_stmt->execute();
                     $bg_result = $bg_stmt->get_result();
@@ -123,7 +111,7 @@ if ($result && $result->num_rows > 0) {
 
         if ($row['Type'] === 'sign') {
             $sign_sql = "SELECT Image_Url, Speed FROM signs WHERE ID = ?";
-            $sign_stmt = $conn->prepare($sign_sql);
+            $sign_stmt = $mysqli->prepare($sign_sql);
             $sign_stmt->bind_param("i", $row['Question_ID']);
             $sign_stmt->execute();
             $sign_result = $sign_stmt->get_result();
@@ -140,7 +128,7 @@ if ($result && $result->num_rows > 0) {
 
         if ($row['Type'] === 'object') {
             $object_sql = "SELECT Item1_ID, Item2_ID, Item3_ID, Item4_ID FROM `item-question` WHERE ID = ?";
-            $object_stmt = $conn->prepare($object_sql);
+            $object_stmt = $mysqli->prepare($object_sql);
             $object_stmt->bind_param("i", $row['Question_ID']);
             $object_stmt->execute();
             $object_result = $object_stmt->get_result();
@@ -152,7 +140,7 @@ if ($result && $result->num_rows > 0) {
                     $item_id_key = "Item{$i}_ID";
                     if (!empty($object_data[$item_id_key])) {
                         $item_sql = "SELECT Image_Url, Name, Necessary FROM items WHERE ID = ?";
-                        $item_stmt = $conn->prepare($item_sql);
+                        $item_stmt = $mysqli->prepare($item_sql);
                         $item_stmt->bind_param("i", $object_data[$item_id_key]);
                         $item_stmt->execute();
                         $item_result = $item_stmt->get_result();
@@ -184,7 +172,7 @@ if ($result && $result->num_rows > 0) {
             $park_sql = "SELECT Spot1_Occupied, Spot2_Occupied, Spot3_Occupied, Spot4_Occupied, Spot5_Occupied, Spot6_Occupied, Target
                      FROM `park-question`
                      WHERE ID = ?";
-            $park_stmt = $conn->prepare($park_sql);
+            $park_stmt = $mysqli->prepare($park_sql);
             $park_stmt->bind_param("i", $row['Question_ID']);
             $park_stmt->execute();
             $park_result = $park_stmt->get_result();
@@ -197,7 +185,7 @@ if ($result && $result->num_rows > 0) {
                     $spot_key = "Spot{$i}_Occupied";
                     if (!empty($park_data[$spot_key])) {
                         $sprite_sql = "SELECT Image_Url FROM `vehicle-sprites` WHERE ID = ?";
-                        $sprite_stmt = $conn->prepare($sprite_sql);
+                        $sprite_stmt = $mysqli->prepare($sprite_sql);
                         $sprite_stmt->bind_param("i", $park_data[$spot_key]);
                         $sprite_stmt->execute();
                         $sprite_result = $sprite_stmt->get_result();

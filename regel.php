@@ -1,9 +1,5 @@
 <?php
-// Database connection
-$mysqli = new mysqli("localhost", "root", "root", "safelane");
-if ($mysqli->connect_errno) {
-    die("Failed to connect: " . $mysqli->connect_error);
-}
+require_once 'db.php';
 
 // Get ID from URL
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
