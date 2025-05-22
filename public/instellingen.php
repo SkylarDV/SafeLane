@@ -13,7 +13,8 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instellingen</title>
+    <title>SafeLane - Groep Instellingen</title>
+    <link rel="icon" type="image/png" href="https://i.imgur.com/Rkhkta4.png">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

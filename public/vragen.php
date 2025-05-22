@@ -213,7 +213,8 @@ if ($result && $result->num_rows > 0) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SafeLane</title>
+  <title>SafeLane - Vragen</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/Rkhkta4.png">
   <script src="JS/p5.min.js"></script>
   <script>
     var questions = <?php echo json_encode($questions); ?>;

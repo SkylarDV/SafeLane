@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scorebord</title>
+  <title>SafeLane - Scorebord</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/Rkhkta4.png">
   <link rel="stylesheet" href="CSS/normalize.css" />
   <link rel="stylesheet" href="CSS/style3.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
