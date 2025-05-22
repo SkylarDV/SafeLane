@@ -50,10 +50,10 @@ let objectImmediateFail = false;
 
 function preload() {
     roadbg = loadImage('https://i.imgur.com/FlS2QeG.png');
-    tableImg = loadImage('https://i.imgur.com/l521dGL.png');
     signbg = loadImage('https://i.imgur.com/SzUvDYF.png');
     parkRoadbg = loadImage('https://i.imgur.com/FNJqNZ1.png'); // changed here
     parkCarImg = loadImage('https://i.imgur.com/1AczEtv.png');
+    objectBg = loadImage('https://i.imgur.com/iWTWDGF.png'); // <-- Updated background
 }
 
 function setup() {
@@ -379,7 +379,8 @@ class Item {
     mouseReleased() {
         if (this.isDragging) {
             this.isDragging = false;
-            if (this.y < height / 2) {
+            // Now: remove if dropped in the BOTTOM half
+            if (this.y + this.height / 2 > height / 2) {
                 this.removed = true;
                 // If this is a necessary item, lock all items
                 if (this.necessary) {
@@ -447,7 +448,7 @@ function mousePressed() {
         const btnW = width * 0.4;
         const btnH = height * 0.10;
         const btnX = width / 2 - btnW / 2;
-        const btnY = height - btnH - 20;
+        const btnY = height - btnH - px(4);
         if (
             mouseX >= btnX && mouseX <= btnX + btnW &&
             mouseY >= btnY && mouseY <= btnY + btnH
@@ -671,10 +672,11 @@ function draw() {
 
 // Helper to draw the button
 function drawConfirmButton() {
-    const btnW = width * 0.4; // Wider button
+    const btnW = width * 0.4;
     const btnH = height * 0.10;
+    // Centered at bottom
     const btnX = width / 2 - btnW / 2;
-    const btnY = height - btnH - 20;
+    const btnY = height - btnH - px(4);
 
     // Button background: yellow
     noStroke();
@@ -687,7 +689,7 @@ function drawConfirmButton() {
     textStyle(BOLD);
     textSize(btnH * 0.45);
     text("Bevestigen", btnX + btnW / 2, btnY + btnH / 2);
-    textStyle(NORMAL); // Reset for other text
+    textStyle(NORMAL);
 }
 
 function priorGame(
@@ -759,8 +761,9 @@ function priorGame(
 
 function objectGame() {
     if (!objectGameInitialized) {
+        // Place item spots in the TOP half instead of bottom
         let spacing = (width - 4 * px(15)) / 5;
-        let y = height - px(42);
+        let y = px(10); // Start near the top
         itemSpots = [];
         for (let i = 0; i < 4; i++) {
             let x = spacing + i * (px(15) + spacing);
@@ -789,15 +792,24 @@ function objectGame() {
             item.locked = false;
         }
 
-        objectGameInitialized = true; // <-- Fix: set to true after initialization
+        objectGameInitialized = true;
     }
 
-    background(tableImg);
+    background(objectBg);
 
     for (let item of items) {
         item.drag();
         item.draw();
     }
+
+    // Optionally, draw a discard zone at the bottom
+    drawDiscardZone();
+}
+
+// Draw a visual discard zone at the bottom half
+function drawDiscardZone() {
+    // No color, no text, just a transparent zone
+    // (function kept for clarity, but now empty)
 }
 
 function checkItemsRemovedCorrectly() {
