@@ -27,47 +27,6 @@ $userId = $_SESSION['user_id'];
 
 // Check if user is in any group
 $checkGroups = $mysqli->query("SELECT Group_ID FROM `user-group` WHERE User_ID = $userId LIMIT 1");
-if ($checkGroups->num_rows === 0) {
-    // Show message and exit before rendering the rest of the page
-    ?>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>SafeLane - Groep Instellingen</title>
-        <link rel="icon" type="image/png" href="https://i.imgur.com/Rkhkta4.png">
-        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-        <style>
-            body { font-family: 'Ubuntu', sans-serif; background: #f4f7fa; color: #222; }
-            .geen-groep {
-                max-width: 500px;
-                margin: 100px auto;
-                background: #fff3cd;
-                color: #856404;
-                border: 1px solid #ffeeba;
-                border-radius: 8px;
-                padding: 32px 24px;
-                font-size: 1.2rem;
-                text-align: center;
-            }
-            .plus-icon {
-                color: #e0b44a;
-                font-size: 2rem;
-                vertical-align: middle;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="geen-groep">
-            Je zit nog niet in een groep.<br>
-            Vraag aan iemand om je uit te nodigen of maak zelf een groep aan met
-            <span class="plus-icon">+</span>
-        </div>
-    </body>
-    </html>
-    <?php
-    exit;
-}
 
 $groupId = isset($_GET['group_id']) ? intval($_GET['group_id']) : 0;
 if ($groupId <= 0) {

@@ -177,12 +177,12 @@ main {
     require_once 'db.php';
     $userId = $_SESSION['user_id']; // Use the logged-in user's ID
 
-    $sql = "SELECT Sign_Score, Park_Score, Speed_Score, Light_Score, Prior_Score FROM users WHERE ID = $userId";
+    $sql = "SELECT Object_Score, Park_Score, Speed_Score, Light_Score, Prior_Score FROM users WHERE ID = $userId";
     $result = $mysqli->query($sql);
     $scores = [0, 0, 0, 0, 0];
     if ($row = $result->fetch_assoc()) {
         $scores = [
-            (int)$row['Sign_Score'],
+            (int)$row['Object_Score'],
             (int)$row['Park_Score'],
             (int)$row['Speed_Score'],
             (int)$row['Light_Score'],
@@ -216,8 +216,8 @@ main {
 
         <div class="chartWrap">
             <div class="barWrap">
-                <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[0]; ?>%"></div></div>
-                <div class="label">Borden</div>
+                <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[3]; ?>%"></div></div>
+                <div class="label">Lichten</div>
             </div>
             <div class="barWrap">
                 <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[1]; ?>%"></div></div>
@@ -228,12 +228,12 @@ main {
                 <div class="label">Snelheid</div>
             </div>
             <div class="barWrap">
-                <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[3]; ?>%"></div></div>
-                <div class="label">Verkeerslichten</div>
-            </div>
-            <div class="barWrap">
                 <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[4]; ?>%"></div></div>
                 <div class="label">Voorrang</div>
+            </div>
+            <div class="barWrap">
+                <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[0]; ?>%"></div></div>
+                <div class="label">Voorwerpen</div>
             </div>
         </div>
     </main>

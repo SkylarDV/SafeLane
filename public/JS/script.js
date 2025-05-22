@@ -162,6 +162,9 @@ function setup() {
             });
         }
     }
+    if (typeof showQuestion === "function") {
+        showQuestion(currentIndex);
+    }
 }
 
 function windowResized() {
@@ -733,6 +736,7 @@ function checkItemsRemovedCorrectly() {
 
 function signGame() {
     const q = questions[currentIndex];
+    if (!q || typeof q.signSpeed === "undefined") return;
     if (!signTrafficSign && q.signImageUrl) {
         loadImage(q.signImageUrl, img => {
             signTrafficSign = new GrowingSign(img);
@@ -908,14 +912,19 @@ function loadPriorForCurrentQuestion() {
 
 function nextQuestion() {
     // Award points before moving to the next question
-    if (feedbackLight === 'green') {
+    let wasCorrect = feedbackLight === 'green';
+    if (wasCorrect) {
         playerScore += 10;
-        fetch('update_score.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'user_id=' + window.user_id + '&points=10'
-        });
     }
+    // Send game type and correctness to update_score.php
+    fetch('update_score.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'user_id=' + window.user_id +
+              '&points=' + (wasCorrect ? 10 : 0) +
+              '&game=' + encodeURIComponent(game) +
+              '&correct=' + (wasCorrect ? 1 : 0)
+    });
 
     fetch('vragen.php', {
         method: 'POST',
@@ -962,27 +971,7 @@ function updateActiveIndicator(activeIdx) {
   indicator.style.left = `${center}px`;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Use window.progress if available, otherwise fallback to currentIndex
-  let progressValue = typeof window.progress !== "undefined" ? window.progress : (currentIndex + 1);
 
-  showQuestion(currentIndex);
-  updateProgressCircles(progressValue); // FILL up to user's progress
-  updateActiveIndicator(currentIndex);  // CAR on current question
-
-  var nextBtn = document.getElementById('next-btn');
-  if (nextBtn) {
-    nextBtn.onclick = function(e) {
-      e.preventDefault();
-      showGreenCheck = false; // Always clear the checkmark
-      if (currentIndex < questions.length) {
-        nextQuestion();
-      } else {
-        window.location.href = 'resultaten.php';
-      }
-    };
-  }
-});
 
 function drawGreenCheckmark(x, y, size) {
     push();
@@ -1023,4 +1012,66 @@ function drawRedX(x, y, size) {
     line(x - offset, y + offset, x + offset, y - offset);
     pop();
 }
+
+function showQuestion(index) {
+    if (!questions || !questions[index]) return; // Prevents undefined access
+    document.getElementById('question-text').textContent = questions[index].Question_Text;
+    game = questions[index].Type;
+    if (game === "sign" && typeof loadSignForCurrentQuestion === "function") {
+        loadSignForCurrentQuestion();
+    }
+    if (game === "prior" && typeof loadPriorForCurrentQuestion === "function") {
+        loadPriorForCurrentQuestion();
+    }
+    updateNextBtnHref();
+}
+
+function updateNextBtnHref() {
+    const nextBtn = document.getElementById('next-btn');
+    if (currentIndex >= questions.length - 1) {
+        nextBtn.setAttribute('href', 'resultaten.php');
+    } else {
+        nextBtn.setAttribute('href', '#');
+    }
+}
+
+function updateActiveIndicator(activeIdx) {
+    const circles = document.querySelectorAll('.progress-circles .circle');
+    const indicator = document.getElementById('active-indicator');
+    if (!circles[activeIdx] || !indicator) return;
+    const circleRect = circles[activeIdx].getBoundingClientRect();
+    const scrollLeft = window.scrollX || window.pageXOffset;
+    indicator.style.left = (circleRect.left + circleRect.width / 2 + scrollLeft) + 'px';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('next-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (typeof currentIndex === 'undefined') {
+            currentIndex = window.progress || 0;
+        }
+        if (currentIndex >= questions.length - 1) {
+            window.location.href = 'resultaten.php';
+        } else {
+            currentIndex++;
+            //showQuestion(currentIndex);
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Only set up the next button handler here
+  var nextBtn = document.getElementById('next-btn');
+  if (nextBtn) {
+    nextBtn.onclick = function(e) {
+      e.preventDefault();
+      showGreenCheck = false;
+      if (currentIndex < questions.length) {
+        nextQuestion();
+      } else {
+        window.location.href = 'resultaten.php';
+      }
+    };
+  }
+});
 

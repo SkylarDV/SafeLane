@@ -288,11 +288,18 @@ if ($result && $result->num_rows > 0) {
                 window.location.href = 'resultaten.php';
             } else {
                 currentIndex++;
-                showQuestion(currentIndex);
+                //showQuestion(currentIndex);
             }
         });
     });
   </script>
+  <script>
+  var questions = <?php echo json_encode($questions); ?>;
+  var currentIndex = Math.min(<?php echo intval($progress); ?>, questions.length - 1);
+  var game = questions.length > 0 ? questions[0].Type : "";
+  window.progress = <?php echo intval($progress); ?>;
+  window.user_id = <?php echo intval($user_id); ?>;
+</script>
   <script src="JS/script.js"></script>
   <link rel="stylesheet" href="CSS/normalize.css">
   <style>
