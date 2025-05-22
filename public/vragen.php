@@ -32,6 +32,15 @@ if ($result->num_rows === 0) {
 $row = $result->fetch_assoc();
 $check_stmt->close();
 
+$progress = 0;
+for ($i = 1; $i <= 10; $i++) {
+    if (!isset($row["Q$i"]) || is_null($row["Q$i"])) {
+        $progress = $i - 1;
+        break;
+    }
+    $progress = $i;
+}
+$_SESSION['progress'] = $progress;
 
 $user_id = $_SESSION['user_id'];
 //$seven_days_ago = date('Y-m-d', strtotime('-7 days'));

@@ -45,6 +45,8 @@ let playerScore = 0;
 let questionResults = []; // "correct" or "incorrect"
 
 let showGreenCheck = false;
+let objectConfirmed = false;
+let objectImmediateFail = false;
 
 function preload() {
     roadbg = loadImage('https://i.imgur.com/FlS2QeG.png');
@@ -439,6 +441,27 @@ function mousePressed() {
             parkVehicle.mousePressed();
         }
     }
+
+    // Confirm button for object game
+    if (game === "object" && !objectConfirmed && !objectImmediateFail) {
+        const btnW = width * 0.4;
+        const btnH = height * 0.10;
+        const btnX = width / 2 - btnW / 2;
+        const btnY = height - btnH - 20;
+        if (
+            mouseX >= btnX && mouseX <= btnX + btnW &&
+            mouseY >= btnY && mouseY <= btnY + btnH
+        ) {
+            objectConfirmed = true;
+            if (checkItemsRemovedCorrectly()) {
+                feedbackLight = 'green';
+                showGreenCheck = true;
+            } else {
+                feedbackLight = 'red';
+                showGreenCheck = false;
+            }
+        }
+    }
 }
 
 function mouseReleased() {
@@ -452,11 +475,20 @@ function mouseReleased() {
         for (let item of items) {
             item.mouseReleased();
         }
-        if (checkItemsRemovedCorrectly()) {
-            feedbackLight = 'green';
-            showGreenCheck = true;
-        } else {
-            feedbackLight = 'red';
+        // Immediate fail if a necessary item is removed
+        objectImmediateFail = false;
+        for (let item of items) {
+            if (item.necessary && item.removed) {
+                objectImmediateFail = true;
+                feedbackLight = 'red';
+                showGreenCheck = false;
+                break;
+            }
+        }
+        // Only reset feedback if not confirmed and not immediate fail
+        if (!objectImmediateFail && !objectConfirmed) {
+            feedbackLight = null;
+            showGreenCheck = false;
         }
     }
     if (game === "park") {
@@ -467,11 +499,15 @@ function mouseReleased() {
             let correctIndex = questions[currentIndex].Target - 1;
             for (let i = 0; i < parkTargets.length; i++) {
                 let t = parkTargets[i];
+                const margin = 10; // pixels
+
+                const centerX = parkVehicle.x + parkVehicle.width / 2;
+                const centerY = parkVehicle.y + parkVehicle.height / 2;
                 if (
-                    parkVehicle.x + parkVehicle.width > t.x &&
-                    parkVehicle.x < t.x + t.width &&
-                    parkVehicle.y + parkVehicle.height > t.y &&
-                    parkVehicle.y < t.y + t.height
+                    centerX > t.x - margin &&
+                    centerX < t.x + t.width + margin &&
+                    centerY > t.y - margin &&
+                    centerY < t.y + t.height + margin
                 ) {
                     onTarget = true;
                     if (i === correctIndex) {
@@ -479,9 +515,9 @@ function mouseReleased() {
                         showGreenCheck = true;
                     } else {
                         feedbackLight = 'red';
-                        parkVehicle.locked = true; // <-- Lock the car
-                        blinkTargetIndex = correctIndex; // <-- Set blinking target
-                        blinkStartTime = millis(); // <-- Start blinking timer
+                        parkVehicle.locked = true;
+                        blinkTargetIndex = correctIndex;
+                        blinkStartTime = millis();
                     }
                     console.log('Feedback:', feedbackLight);
                     break;
@@ -553,10 +589,16 @@ function draw() {
         if (slider) slider.hide();
     }
     if (game == "sign") {
-        background(signbg);
-        signGame();
-        if (slider) slider.show();
-        if (sliderContainer) sliderContainer.show();
+        if (!isCurrentQuestionAnswered()) {
+            background(signbg);
+            signGame();
+            if (slider) slider.show();
+            if (sliderContainer) sliderContainer.show();
+        } else {
+            // Hide slider if already answered
+            if (slider) slider.hide();
+            if (sliderContainer) sliderContainer.hide();
+        }
     } else {
         if (slider) slider.hide();
         if (sliderContainer) sliderContainer.hide();
@@ -610,6 +652,42 @@ function draw() {
     if (game === "object" && feedbackLight === 'red') {
         drawRedX(width / 2, height / 2, Math.min(width, height) * 0.3);
     }
+
+    // Draw confirm button for object game if not yet confirmed and not failed
+    if (game === "object" && !objectConfirmed && !objectImmediateFail) {
+        drawConfirmButton();
+    }
+
+    // Only show feedback if confirmed or immediate fail
+    if (game === "object" && (objectConfirmed || objectImmediateFail)) {
+        if (feedbackLight === 'green') {
+            drawGreenCheckmark(width / 2, height / 2, Math.min(width, height) * 0.3);
+        }
+        if (feedbackLight === 'red') {
+            drawRedX(width / 2, height / 2, Math.min(width, height) * 0.3);
+        }
+    }
+}
+
+// Helper to draw the button
+function drawConfirmButton() {
+    const btnW = width * 0.4; // Wider button
+    const btnH = height * 0.10;
+    const btnX = width / 2 - btnW / 2;
+    const btnY = height - btnH - 20;
+
+    // Button background: yellow
+    noStroke();
+    fill('#E0B44A');
+    rect(btnX, btnY, btnW, btnH, 12);
+
+    // Button text: bold, black, centered
+    fill(0);
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    textSize(btnH * 0.45);
+    text("Bevestigen", btnX + btnW / 2, btnY + btnH / 2);
+    textStyle(NORMAL); // Reset for other text
 }
 
 function priorGame(
@@ -995,8 +1073,8 @@ function drawGreenCheckmark(x, y, size) {
     rectMode(CENTER);
     rect(x, y, bgSize, bgSize, 8);
 
-    // Draw the checkmark
-    stroke(0, 200, 0);
+    // Draw the checkmark in white
+    stroke(255);
     strokeWeight(size * 0.15);
     noFill();
     beginShape();
@@ -1016,8 +1094,8 @@ function drawRedX(x, y, size) {
     rectMode(CENTER);
     rect(x, y, bgSize, bgSize, 8);
 
-    // Draw the red X
-    stroke(255, 0, 0);
+    // Draw the X in white
+    stroke(255);
     strokeWeight(size * 0.15);
     noFill();
     let offset = size * 0.25;
@@ -1027,15 +1105,31 @@ function drawRedX(x, y, size) {
 }
 
 function showQuestion(index) {
-    if (!questions || !questions[index]) return; // Prevents undefined access
+    if (!questions || !questions[index]) return;
+    // Only reset if unanswered
+    const qVal = window.userResults && window.userResults['Q' + (index + 1)];
+    if (qVal !== null && typeof qVal !== 'undefined') return;
+
     document.getElementById('question-text').textContent = questions[index].Question_Text;
     game = questions[index].Type;
+
+    // Reset the draggable car for each new parking question
+    if (game === "park") {
+        parkVehicle = undefined;
+        parkTargets = [];
+    }
+
     if (game === "sign" && typeof loadSignForCurrentQuestion === "function") {
         loadSignForCurrentQuestion();
     }
     if (game === "prior" && typeof loadPriorForCurrentQuestion === "function") {
         loadPriorForCurrentQuestion();
     }
+    objectConfirmed = false;
+    objectImmediateFail = false;
+    feedbackLight = null;
+    showGreenCheck = false;
+    objectGameInitialized = false; // <-- Also reset this for object questions
     updateNextBtnHref();
 }
 
@@ -1092,26 +1186,15 @@ function fetchAndUpdateProgressCircles() {
       window.userResults = data;
       updateProgressCircles();
 
-      // Check if all Q1-Q10 are answered
-      let allAnswered = true;
-      for (let i = 1; i <= 10; i++) {
-        const qVal = window.userResults['Q' + i];
-        if (qVal === null || typeof qVal === 'undefined') {
-          allAnswered = false;
-          break;
-        }
-      }
-
-      if (allAnswered) {
-        // Do nothing here, let nextQuestion() handle the message and redirect
-        return;
-      }
-
       // Only set currentIndex and showQuestion if not past the last question
       if (currentIndex < questions.length) {
         currentIndex = getFirstUnansweredIndex();
-        showQuestion(currentIndex);
-        setTimeout(() => updateActiveIndicator(currentIndex), 0);
+        // Only show if unanswered
+        const qVal = window.userResults['Q' + (currentIndex + 1)];
+        if (qVal === null || typeof qVal === 'undefined') {
+          showQuestion(currentIndex);
+          setTimeout(() => updateActiveIndicator(currentIndex), 0);
+        }
       }
     });
 }
@@ -1125,6 +1208,11 @@ function getFirstUnansweredIndex() {
     }
   }
   return 0; // fallback to first question if all are answered
+}
+
+function isCurrentQuestionAnswered() {
+    const qVal = window.userResults && window.userResults['Q' + (currentIndex + 1)];
+    return qVal !== null && typeof qVal !== 'undefined';
 }
 
 
