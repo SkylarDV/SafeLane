@@ -48,6 +48,11 @@ let showGreenCheck = false;
 let objectConfirmed = false;
 let objectImmediateFail = false;
 
+// Add these variables near your other sign-related variables:
+let signAppearDelay = 1000; // ms
+let signAppearStart = null;
+let signAppearReady = false;
+
 function preload() {
     roadbg = loadImage('https://i.imgur.com/FlS2QeG.png');
     signbg = loadImage('https://i.imgur.com/SzUvDYF.png');
@@ -824,16 +829,68 @@ function checkItemsRemovedCorrectly() {
     return true;
 }
 
+// Update loadSignForCurrentQuestion to set up the delay:
+function loadSignForCurrentQuestion() {
+    const q = questions[currentIndex];
+    signTrafficSign = null;
+    signSpeed = null;
+    signTimerStart = null;
+    signTimerActive = false;
+    signTimerDone = false;
+    signAppearStart = millis();      // <-- Start the delay timer
+    signAppearReady = false;         // <-- Not ready to show yet
+    if (q.Type === "sign" && q.signImageUrl) {
+        loadImage(q.signImageUrl, img => {
+            signTrafficSign = new GrowingSign(img);
+        });
+        signSpeed = q.signSpeed;
+    }
+    if (slider) slider.value(10); 
+}
+
+// Update signGame to handle the delay:
 function signGame() {
     const q = questions[currentIndex];
     if (!q || typeof q.signSpeed === "undefined") return;
-    if (!signTrafficSign && q.signImageUrl) {
-        loadImage(q.signImageUrl, img => {
-            signTrafficSign = new GrowingSign(img);
-            signTimerStart = millis();
+
+    // Wait for the delay before showing sign and timer
+    if (!signAppearReady) {
+        if (signAppearStart === null) signAppearStart = millis();
+        const elapsed = millis() - signAppearStart;
+        if (elapsed < signAppearDelay) {
+            // During the delay, force slider to 10 and disable it
+            if (slider) {
+                slider.value(10);
+                slider.elt.disabled = true;
+            }
+            // Draw a timer slightly above center (at y = height/2 - px(10))
+            push();
+            let progress = constrain(elapsed / signAppearDelay, 0, 1);
+            let timerRadius = Math.min(width, height) * 0.12;
+            let timerStroke = Math.min(width, height) * 0.025;
+            translate(width / 2, height / 2 - px(10));
+            noFill();
+            stroke(220);
+            strokeWeight(timerStroke);
+            ellipse(0, 0, timerRadius * 2, timerRadius * 2);
+            stroke('#E0B44A');
+            strokeWeight(timerStroke * 1.2);
+            arc(0, 0, timerRadius * 2, timerRadius * 2, -HALF_PI, -HALF_PI + progress * TWO_PI);
+            pop();
+            return;
+        } else {
+            signAppearReady = true;
+            signTimerStart = millis();      // <-- Start timer now
             signTimerActive = true;
             signTimerDone = false;
-        });
+            if (slider) slider.elt.disabled = false; // Enable slider after delay
+        }
+    }
+
+    if (slider) slider.elt.disabled = false; // Ensure enabled after delay
+
+    if (!signTrafficSign && q.signImageUrl) {
+        // Already loading in loadSignForCurrentQuestion
         return; 
     }
 
@@ -864,7 +921,7 @@ function signGame() {
         noStroke();
         fill(255, 0, 0);
         textStyle(BOLD);
-        text(correctVal, x + txtW + px(1), y); // <-- Add px(6) for spacing
+        text(correctVal, x + txtW + px(1), y);
     } else {
         fill(255);
         noStroke();
@@ -975,12 +1032,11 @@ function loadSignForCurrentQuestion() {
     signTimerStart = null;
     signTimerActive = false;
     signTimerDone = false;
+    signAppearStart = millis();      // <-- Start the delay timer
+    signAppearReady = false;         // <-- Not ready to show yet
     if (q.Type === "sign" && q.signImageUrl) {
         loadImage(q.signImageUrl, img => {
             signTrafficSign = new GrowingSign(img);
-            signTimerStart = millis();
-            signTimerActive = true;
-            signTimerDone = false;
         });
         signSpeed = q.signSpeed;
     }
