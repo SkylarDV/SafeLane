@@ -227,6 +227,30 @@ main {
     width: max-content;
     pointer-events: none;
 }
+
+.custom-tooltip {
+    display: none;
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #223344;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    white-space: normal; /* allow wrapping */
+    min-width: 300px;
+    max-width: 500px;    /* 5x bar width */
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    pointer-events: none;
+    text-align: center;
+    word-break: break-word;
+}
+.barWrap:hover .custom-tooltip {
+    display: block;
+}
 </style>
 </head>
 <body>
@@ -274,22 +298,27 @@ main {
         <div class="chartWrap">
             <div class="barWrap">
                 <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[3]; ?>%"></div></div>
+                <div class="custom-tooltip">Verkeerslichten regelen het verkeer met rood, oranje en groen licht om botsingen te voorkomen. Ze geven aan wanneer je moet stoppen, opletten of doorrijden.</div>
                 <div class="label">Lichten</div>
             </div>
             <div class="barWrap">
                 <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[1]; ?>%"></div></div>
+                <div class="custom-tooltip">Parkeren betekent je voertuig op een toegestane plek stilzetten. Dit kan op straat, in een parkeergarage of op een parkeerplaats.</div>
                 <div class="label">Parkeren</div>
             </div>
             <div class="barWrap">
                 <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[2]; ?>%"></div></div>
+                <div class="custom-tooltip">Snelheid in het verkeer verwijst naar hoe hard een voertuig rijdt. Er gelden maximumsnelheden om veiligheid op de weg te waarborgen.</div>
                 <div class="label">Snelheid</div>
             </div>
             <div class="barWrap">
                 <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[4]; ?>%"></div></div>
+                <div class="custom-tooltip">Voorrang bepaalt welk voertuig als eerste mag doorrijden bij kruisingen of invoegstroken. Verkeersborden en haaientanden geven vaak aan wie voorrang heeft.</div>
                 <div class="label">Voorrang</div>
             </div>
             <div class="barWrap">
                 <div class="bar"><div class="bar-fill" style="height:<?php echo $scores[0]; ?>%"></div></div>
+                <div class="custom-tooltip">Voorwerpen om in de auto te hebben zijn onder andere een gevarendriehoek, veiligheidshesje en EHBO-kit. Deze helpen bij pech of ongevallen onderweg.</div>
                 <div class="label">Voorwerpen</div>
             </div>
         </div>
