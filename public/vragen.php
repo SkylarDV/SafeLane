@@ -565,7 +565,7 @@ if ($result && $result->num_rows > 0) {
 </head>
 <body>
   <div class="progress-bar-bg">
-    <a href="home.php" class="back-button"></a>
+    <a href="index.php" class="back-button"></a>
     <div class="progress-circles">
       <div class="circle"></div>
       <div class="circle"></div>

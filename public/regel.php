@@ -216,7 +216,7 @@ body {
         <nav class="sidemenu">
             <div class="logo"><img src="images/newLogo.png"><br><span>Safelane</span></div>
             <ul class="list">
-                <li><a href="home.php" class="navLink"><i class="icon">🏠</i>Startscherm</a></li>
+                <li><a href="index.php" class="navLink"><i class="icon">🏠</i>Startscherm</a></li>
                 <li><a href="scorebord.php" class="navLink "><i class="icon">🏆</i>Scorebord</a></li>
                 <li><a href="resultaten.php" class="navLink"><i class="icon">📊</i>Resultaten</a></li>
                 <li><a href="regels.php" class="navLink active"><i class="icon">📝</i>Nieuwe regels</a></li>
