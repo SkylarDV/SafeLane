@@ -51,6 +51,8 @@ $user_id = $_SESSION['user_id']; // Add this line
       flex-direction: column;
       align-items: center;
       height: 100vh;
+      position: relative;
+      overflow: visible; /* Add this line */
     }
 
     .logo {
@@ -215,12 +217,65 @@ $user_id = $_SESSION['user_id']; // Add this line
     .highlight {
       background-color: #f0e68c;
     }
+
+    /* Nav progress bar background */
+    .nav-progress-bg {
+      display: none;
+      width: 100%;
+      height: 54px;
+      background: url('https://i.imgur.com/RdXFocR.png') center top/cover no-repeat;
+      position: absolute;
+      left: 0;
+      bottom: 0; /* stick to bottom */
+      margin: 0;
+      border-radius: 0;
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    .tiny-progress-circles {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 6px;
+      width: 100%;
+      height: 54px;
+      padding-top: 8px; /* circles at top of image */
+      position: relative;
+    }
+
+    .tiny-circle {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff; /* Ensure visible */
+      border: 2px solid #E0B44A;
+      transition: background 0.2s, border-color 0.2s;
+      margin-top: 4px;
+      z-index: 3; /* Ensure above image */
+      position: relative;
+    }
+
+    .tiny-circle.active {
+      background: #E0B44A;
+      border-color: #E0B44A;
+    }
+    .tiny-circle.correct {
+      background: #4CAF50;
+      border-color: #4CAF50;
+    }
+    .tiny-circle.incorrect {
+      background: #E74C3C;
+      border-color: #E74C3C;
+    }
+
   </style>
 </head>
 <body>
   <div class="everything">
-    <nav class="sidemenu">
-      <div class="logo">
+    <nav class="sidemenu" style="position:relative;">
+      <div class="logo" style="margin-top:54px;">
         <img src="https://i.imgur.com/Rkhkta4.png" alt="Logo"/><br />
         <span>Safelane</span>
       </div>
@@ -230,13 +285,17 @@ $user_id = $_SESSION['user_id']; // Add this line
         <li><a href="resultaten.php" class="navLink"><i class="icon">📊</i>Resultaten</a></li>
         <li><a href="regels.php" class="navLink"><i class="icon">📝</i>Nieuwe regels</a></li>
       </ul>
+      <div class="nav-progress-bg">
+        <div class="tiny-progress-circles">
+          <?php for ($i = 1; $i <= 10; $i++): ?>
+            <div class="tiny-circle" id="tiny-q<?= $i ?>"></div>
+          <?php endfor; ?>
+        </div>
+      </div>
     </nav>
-
     <div class="main">
       <?php
       require_once 'db.php';
-
-      // Only fetch groups the user is a member of
       $groups = [];
       $groupResult = $mysqli->query(
           "SELECT g.ID, g.Name
@@ -251,7 +310,6 @@ $user_id = $_SESSION['user_id']; // Add this line
           ];
       }
 
-
       // For each group, get players (user-group join users)
       foreach ($groups as $groupId => &$group) {
           $sql = "SELECT ug.User_ID, ug.Score, u.Username, u.Image_Url
@@ -265,25 +323,21 @@ $user_id = $_SESSION['user_id']; // Add this line
           }
       }
       unset($group); // break reference
-
       $mysqli->close();
       ?>
-
       <div class="pageHeader">
         <h1 class="pageTitle">Scorebord</h1>
         <div class="headerIcons">
           <a href="groepen.php" style="text-decoration: none; color: #4e6e85;"><i class="ri-add-line"></i></a>
           <a href="instellingen.php<?php if (!empty($groups)) { echo '?group_id=' . array_key_first($groups); } ?>" style="text-decoration: none; color: #4e6e85;" id="settings-link"><i class="ri-more-2-fill"></i></a>
-          <i class="ri-car-line"></i>
+          <i class="ri-car-line" id="show-progress-bar" style="cursor:pointer;"></i>
         </div>
       </div>
-
       <div class="tabs">
         <?php $first = true; foreach ($groups as $groupId => $group): ?>
             <div class="tab<?php if ($first) echo ' active'; ?>" onclick="showTeam('team<?= $groupId ?>')"><?= htmlspecialchars($group['name']) ?></div>
         <?php $first = false; endforeach; ?>
       </div>
-
       <?php
       $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg'; // Set your placeholder path
       if (empty($groups)) : ?>
@@ -322,21 +376,17 @@ $user_id = $_SESSION['user_id']; // Add this line
       ?>
     </div>
   </div>
-
   <script>
     function showTeam(teamId) {
       // Hide all team contents
       document.querySelectorAll('.teamContent').forEach(tc => {
         tc.classList.add('hidden');
       });
-
       // Show the selected team content
       document.getElementById(teamId).classList.remove('hidden');
-
       // Update active tab
       const tabs = document.querySelectorAll('.tab');
       tabs.forEach(tab => tab.classList.remove('active'));
-
       // Set active tab based on teamId
       const teamIndex = Array.from(document.querySelectorAll('.teamContent')).findIndex(tc => tc.id === teamId);
       if (teamIndex !== -1) {
@@ -346,6 +396,32 @@ $user_id = $_SESSION['user_id']; // Add this line
         document.getElementById('settings-link').href = 'instellingen.php?group_id=' + groupId;
       }
     }
+    fetch('vragen.php?get_user_results=1&user_id=<?= $user_id ?>')
+      .then(res => res.json())
+      .then(data => {
+        let foundActive = false;
+        for (let i = 1; i <= 10; i++) {
+          const val = data['Q' + i];
+          const el = document.getElementById('tiny-q' + i);
+          if (!el) continue;
+          el.classList.remove('active', 'correct', 'incorrect');
+          if (val === null || typeof val === 'undefined') {
+            if (!foundActive) {
+              el.classList.add('active');
+              foundActive = true;
+            }
+            // else leave as default (white)
+          } else if (val == 1) {
+            el.classList.add('correct');
+          } else if (val == 0) {
+            el.classList.add('incorrect');
+          }
+        }
+      });
+    document.getElementById('show-progress-bar').addEventListener('click', function() {
+      const bar = document.querySelector('.nav-progress-bg');
+      bar.style.display = (bar.style.display === 'block') ? 'none' : 'block';
+    });
   </script>
 </body>
 </html>

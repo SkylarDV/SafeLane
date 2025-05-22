@@ -118,11 +118,6 @@ if ($result) {
     color: #4e6e85;
 }
 
-.headerIcons {
-    font-size: 24px;
-    color: #4e6e85;
-}
-
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -196,7 +191,6 @@ if ($result) {
     <main class="main">
       <div class="pageHeader">
         <h1 class="pageTitle">Nieuwe regels</h1>
-        <div class="headerIcons"><i class="ri-car-line"></i></div>
       </div>
 
       <div class="grid">
