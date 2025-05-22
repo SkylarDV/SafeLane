@@ -1,4 +1,11 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+?>
+<?php
 require_once 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_progress'])) {

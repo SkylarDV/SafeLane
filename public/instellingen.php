@@ -1,4 +1,11 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+?>
+<?php
 require_once 'db.php';
 $groupId = 1; // Replace with the actual group ID you want to show
 $leden = [];

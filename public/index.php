@@ -1,4 +1,14 @@
 <?php
+session_start();
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 require_once 'db.php';
 // You can now use $mysqli for any queries on this page
 ?>
@@ -165,6 +175,30 @@ body {
     border: 2px solid #000;
 }
 
+.logout-btn {
+    position: absolute;
+    top: calc(50% + 50px); /* slightly below the main button */
+    left: 50%;
+    transform: translate(-50%, 0);
+    background: #4e6e85;
+    color: #fff;
+    font-size: 1rem;
+    padding: 10px 28px;
+    border: none;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.logout-btn:hover {
+    background: #fff;
+    color: #4e6e85;
+    border: 2px solid #4e6e85;
+}
+
     </style>
 </head>
 <body>
@@ -187,6 +221,7 @@ body {
             <img src="https://i.imgur.com/3j8Gfj4.png" alt="Car" />
         </div>
         <a class="get-started-btn" href="vragen.php">Begin Eraan</a>
+        <a class="logout-btn" href="index.php?logout=1">Uitloggen</a>
     </div>
       
     </div>    
