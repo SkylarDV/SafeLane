@@ -251,9 +251,49 @@ main {
 .barWrap:hover .custom-tooltip {
     display: block;
 }
+
+.hamburger {
+    display: none;
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #4e6e85;
+    margin: 15px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+}
+
+@media screen and (max-width: 768px) {
+    .hamburger {
+        display: block;
+    }
+    .sidemenu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 220px;
+        padding-top: 60px;
+        background-color: #f4f7fa;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+        font-size: 14px;
+        z-index: 1050;
+        align-items: flex-start;
+    }
+    .sidemenu.active {
+        transform: translateX(0);
+    }
+}
 </style>
 </head>
 <body>
+    <!-- Add this button just before <nav class="sidemenu"> -->
+    <button class="hamburger" id="hamburger">&#9776;</button>
     <?php
     require_once 'db.php';
     $userId = $_SESSION['user_id']; // Use the logged-in user's ID
@@ -324,6 +364,16 @@ main {
         </div>
     </main>
     </div>
-    
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  const hamburger = document.getElementById('hamburger');
+  const sidemenu = document.querySelector('.sidemenu');
+  if (hamburger && sidemenu) {
+    hamburger.addEventListener('click', function() {
+      sidemenu.classList.toggle('active');
+    });
+  }
+});
+</script>
 </body>
 </html>

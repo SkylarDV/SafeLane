@@ -34,8 +34,8 @@ if ($id > 0) {
 
 body {
     font-family: 'Ubuntu', sans-serif;
-    background-color: #1e1e1e;
     color: #000;
+    background-color: #1e1e1e;
 }
 
 .around {
@@ -44,16 +44,17 @@ body {
 }
 
 .sidemenu {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
     width: 220px;
     background-color: #f4f7fa;
     padding: 30px 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    min-height: 100vh;
     z-index: 100;
 }
 
@@ -64,7 +65,7 @@ body {
     text-align: center;
     margin-bottom: 40px;
 }
-  
+
 .logo span {
     font-size: 14px;
 }
@@ -91,8 +92,8 @@ body {
 }
 
 .icon {
-        font-style: normal;
-    }
+    font-style: normal;
+}
 
 .navLink.active {
     background-color: #d9e6f2;
@@ -104,12 +105,11 @@ body {
 }
 
 .main {
-    margin-left: 220px; /* Same as sidemenu width */
     flex: 1;
     background-color: white;
     padding: 40px;
+    margin-left: 220px; /* Add this so main content is not under the sidebar */
     min-height: 100vh;
-    overflow-x: auto;
 }
 
 .main h1 {
@@ -123,7 +123,7 @@ body {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 30px;
-    }
+}
 
 .pageTitle {
     font-size: 30px;
@@ -187,6 +187,7 @@ body {
 .wrapy {
     background-color: #f3f7fa;
 }
+
 .button-rightside {
     display: flex;
     justify-content: flex-end;
@@ -210,9 +211,171 @@ body {
 .button:hover {
     background-color: #cfa337;
 }
+
+.hamburger {
+    display: none;
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #4e6e85;
+    margin: 15px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+}
+
+@media screen and (max-width: 768px) {
+    .around {
+        flex-direction: column;
+    }
+
+    .hamburger {
+        display: block;
+    }
+
+    .sidemenu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 220px;
+        padding-top: 60px;
+        background-color: #f4f7fa;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+        font-size: 14px;
+        z-index: 1050;
+        align-items: flex-start;
+    }
+
+    .sidemenu.active {
+        transform: translateX(0);
+    }
+
+    .sidemenu .logo {
+        font-size: 20px;
+        margin-bottom: 20px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .sidemenu .logo img {
+        width: 80px;
+        height: auto;
+    }
+
+    .list {
+        padding-left: 0;
+        width: 100%;
+    }
+
+    .list li {
+        margin: 5px 0;
+        width: 100%;
+    }
+
+    .navLink {
+        font-size: 12px !important;
+        padding: 12px 20px;
+        width: 100%;
+        border-radius: 0;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 20px;
+        font-size: 14px;
+        padding-top: 60px;
+    }
+
+    .main h1 {
+        font-size: 24px;
+    }
+
+    .form input {
+        height: 50px;
+        margin-bottom: 30px;
+        font-size: 14px;
+    }
+
+    .button {
+        padding: 15px 30px;
+        font-size: 16px;
+    }
+
+    .header-with-icon {
+        flex-direction: row !important;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .exit-icon {
+        font-size: 18px;
+    }
+
+    .leden h3 {
+        font-size: 16px;
+    }
+
+    .lid {
+        flex-wrap: wrap;
+        font-size: 14px;
+    }
+
+    .pageHeader {
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .pageTitle {
+        text-align: center;
+        width: auto;
+    }
+
+    .content {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .video {
+        width: 80vw;
+        height: 180px;
+        margin: 0 auto;
+    }
+
+    .button-rightside {
+        justify-content: center;
+        margin-right: 0;
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .button-rightside .button {
+        display: block;
+        margin: 0 auto;
+    }
+}
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburger');
+            const sidemenu = document.querySelector('.sidemenu');
+
+            hamburger.addEventListener('click', function() {
+                sidemenu.classList.toggle('active');
+            });
+        });
+    </script>
 </head>
 <body>
+    <button class="hamburger" id="hamburger">&#9776;</button>
     <div class="around">
         <nav class="sidemenu">
             <div class="logo"><img src="https://i.imgur.com/Rkhkta4.png"><br><span>Safelane</span></div>
@@ -227,9 +390,6 @@ body {
         <div class="main">
             <div class="pageHeader">
                 <h1 class="pageTitle">Nieuwe regels</h1>
-                <div class="headerIcons">
-                    <i class="ri-car-line"></i>
-                </div>
             </div>
 
             <div class="wrapy">

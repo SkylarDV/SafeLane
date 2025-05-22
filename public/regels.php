@@ -45,6 +45,12 @@ if ($result) {
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      min-height: 100vh;
+      z-index: 100;
     }
 
     .logo {
@@ -92,11 +98,13 @@ if ($result) {
       text-decoration: underline;
     }
 
-    main {
+    .main {
       flex-grow: 1;
       padding: 40px;
       background-color: #ffffff;
       overflow-y: auto;
+      margin-left: 220px; /* Prevent main from going under the fixed sidebar */
+      min-height: 100vh;
     }
 
     .main h1 {
@@ -116,6 +124,11 @@ if ($result) {
     font-size: 30px;
     font-weight: bold;
     color: #4e6e85;
+}
+
+.headerIcons {
+  font-size: 24px;
+  color: #4e6e85;
 }
 
     .grid {
@@ -171,10 +184,124 @@ if ($result) {
       font-size: 14px;
       color: #9AA8B3;
     }
+
+    .hamburger {
+      display: none;
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #4e6e85;
+      margin: 15px;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1100;
+    }
+
+    @media screen and (max-width: 768px) {
+      .everything {
+        flex-direction: column;
+      }
+
+      .hamburger {
+        display: block;
+      }
+
+      .sidemenu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 220px;
+        padding-top: 60px;
+        background-color: #f4f7fa;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+        font-size: 14px;
+        z-index: 1050;
+        align-items: flex-start;
+      }
+
+      .sidemenu.active {
+        transform: translateX(0);
+      }
+
+      .sidemenu .logo {
+        font-size: 20px;
+        margin-bottom: 20px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .sidemenu .logo img {
+        width: 80px; 
+        height: auto;
+      }
+
+      .list {
+        padding-left: 0;
+        width: 100%;
+      }
+
+      .list li {
+        margin: 5px 0;
+        width: 100%;
+      }
+
+      .navLink {
+        font-size: 12px !important;
+        padding: 12px 20px;
+        width: 100%;
+        border-radius: 0;
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 20px;
+        font-size: 14px;
+        padding-top: 60px;
+        min-height: 100vh;
+      }
+
+      .main h1 {
+        font-size: 24px;
+      }
+
+      .header-with-icon {
+        flex-direction: row !important;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        gap: 10px;
+        font-size: 14px;
+      }
+
+      .pageHeader {
+        justify-content: center; 
+        gap: 10px;
+      }
+
+      .pageTitle {
+        text-align: center;
+        width: auto; 
+      }
+
+      .card {
+        width: 90%;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="everything">
+    <button class="hamburger">&#9776;</button>
     <nav class="sidemenu">
       <div class="logo">
         <img src="https://i.imgur.com/Rkhkta4.png" alt="Logo" /><br />
@@ -216,5 +343,10 @@ if ($result) {
       </div>
     </main>
   </div>
+  <script>
+    document.querySelector('.hamburger').addEventListener('click', function() {
+      document.querySelector('.sidemenu').classList.toggle('active');
+    });
+  </script>
 </body>
 </html>

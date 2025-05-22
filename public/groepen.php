@@ -118,6 +118,8 @@ while ($row = $res->fetch_assoc()) {
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-width: 180px;
+      box-shadow: 2px 0 8px rgba(30,30,30,0.06);
     }
 
     .logo {
@@ -125,7 +127,13 @@ while ($row = $res->fetch_assoc()) {
       font-weight: bold;
       color: #4e6e85;
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 32px;
+    }
+
+    .logo img {
+      width: 100px;
+      height: auto;
+      margin-bottom: 8px;
     }
 
     .logo span {
@@ -135,6 +143,12 @@ while ($row = $res->fetch_assoc()) {
     .list {
       width: 100%;
       list-style: none;
+      padding-left: 0;
+      margin-bottom: 30px;
+    }
+
+    .list li {
+      margin-bottom: 8px;
     }
 
     .navLink {
@@ -144,8 +158,9 @@ while ($row = $res->fetch_assoc()) {
       color: #2c3e50;
       text-decoration: none;
       padding: 12px 15px;
-      border-radius: 5px;
-      margin-bottom: 15px;
+      border-radius: 7px;
+      margin-bottom: 0;
+      transition: background 0.2s, color 0.2s;
     }
 
     .navLink .icon {
@@ -157,77 +172,215 @@ while ($row = $res->fetch_assoc()) {
     }
 
     .navLink.active {
-      background-color: #d9e6f2;
+      background-color: #e9e6d2;
       color: #1b2c40;
     }
 
     .navLink:hover {
-      text-decoration: underline;
+      background-color: #e0b44a22;
+      color: #4e6e85;
+      text-decoration: none;
     }
 
     main {
       flex-grow: 1;
-      padding: 40px;
+      padding: 48px 40px 40px 40px;
       background-color: #ffffff;
       overflow-y: auto;
+      min-height: 100vh;
     }
 
     .main h1 {
       color: #4e6e85;
       margin-bottom: 30px;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
     }
 
     .section {
       background-color: #f3f7fa;
-      padding: 30px;
-      border-radius: 8px;
+      padding: 32px 24px;
+      border-radius: 12px;
       width: 100%;
-      margin-bottom: 40px;
+      margin: 0 auto 40px auto;
+      box-shadow: 0 2px 8px rgba(30,30,30,0.04);
     }
 
     .section h1 {
       margin-bottom: 20px;
       color: #2c3e50;
+      font-size: 1.3rem;
     }
 
     .form label {
       font-weight: bold;
       margin-bottom: 10px;
       display: block;
+      color: #4e6e85;
+      font-size: 1rem;
     }
 
     .form select,
     .form input {
-      width: 50%;
-      height: 70px;
+      width: 100%;
+      height: 48px;
       padding: 12px;
-      margin-bottom: 150px;
-      border: none;
+      margin-bottom: 18px;
+      border: 1px solid #e0e0e0;
       border-radius: 6px;
       background-color: #ffffff;
+      font-size: 1rem;
+      transition: border 0.2s;
+    }
+
+    .form select:focus,
+    .form input:focus {
+      border-color: #E0B44A;
+      outline: none;
     }
 
     .button-rightside {
       display: flex;
       justify-content: center;
-      margin-top: 30px;
+      margin-top: 18px;
     }
 
     .button {
       background-color: #E0B44A;
       color: black;
       display: inline-block;
-      margin-top: 30px;
-      padding: 20px 50px;
-      border-radius: 15px;
+      margin-top: 0;
+      padding: 16px 40px;
+      border-radius: 12px;
       text-decoration: none;
-      font-size: 18px;
+      font-size: 1.1rem;
       font-weight: bold;
-      transition: background-color 0.3s;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      box-shadow: 0 2px 8px rgba(30,30,30,0.04);
+    }
+
+    .button:hover {
+      background-color: #cfa337;
+    }
+
+    .form input[type="text"]::placeholder {
+      color: #b0b0b0;
+      opacity: 1;
+    }
+
+    .form select {
+      cursor: pointer;
+    }
+
+    /* Responsive styles */
+    .hamburger {
+      display: none;
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #4e6e85;
+      margin: 15px;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 2001; /* <-- Make sure hamburger is always on top */
+    }
+
+    @media screen and (max-width: 768px) {
+      .everything {
+        flex-direction: column;
+      }
+
+      .hamburger {
+        display: block;
+        z-index: 2001; /* <-- Ensure hamburger stays above sidemenu */
+      }
+
+      .sidemenu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 220px;
+        padding-top: 60px;
+        background-color: #f4f7fa;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+        font-size: 14px;
+        z-index: 2000; /* <-- Lower than hamburger */
+        align-items: flex-start;
+      }
+
+      .sidemenu.active {
+        transform: translateX(0);
+      }
+
+      .sidemenu .logo {
+        font-size: 20px;
+        margin-bottom: 20px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .sidemenu .logo img {
+        width: 80px;
+        height: auto;
+      }
+
+      .list {
+        padding-left: 0;
+        width: 100%;
+      }
+
+      .list li {
+        margin: 5px 0;
+        width: 100%;
+      }
+
+      .navLink {
+        font-size: 12px !important;
+        padding: 12px 20px;
+        width: 100%;
+        border-radius: 0;
+      }
+
+      main {
+        margin-left: 0;
+        padding: 20px;
+        font-size: 14px;
+        padding-top: 60px;
+      }
+
+      main h1 {
+        font-size: 24px;
+      }
+
+      .form input,
+      .form select {
+        height: 40px;
+        margin-bottom: 16px;
+        font-size: 14px;
+      }
+
+      .button {
+        padding: 12px 24px;
+        font-size: 15px;
+      }
+
+      .section {
+        padding: 18px 8px;
+        max-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
+  <button id="hamburger" class="hamburger">&#9776;</button>
   <div class="everything">
     <nav class="sidemenu">
       <div class="logo">
@@ -294,6 +447,15 @@ while ($row = $res->fetch_assoc()) {
             parentDiv.style.display = 'none';
             document.getElementById('parent_group').required = false;
         }
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+      const hamburger = document.getElementById('hamburger');
+      const sidemenu = document.querySelector('.sidemenu');
+      if (hamburger && sidemenu) {
+        hamburger.addEventListener('click', function() {
+          sidemenu.classList.toggle('active');
+        });
+      }
     });
   </script>
 </body>

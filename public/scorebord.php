@@ -41,6 +41,8 @@ $user_id = $_SESSION['user_id']; // Add this line
       flex-direction: row;
       height: 100vh;
       overflow: hidden;
+      margin-left: 220px; /* Always leave space for sidebar */
+      transition: margin-left 0.3s;
     }
 
     .sidemenu {
@@ -51,8 +53,11 @@ $user_id = $_SESSION['user_id']; // Add this line
       flex-direction: column;
       align-items: center;
       height: 100vh;
-      position: relative;
+      position: fixed;
+      left: 0;
+      top: 0;
       overflow: visible; /* Add this line */
+      z-index: 1050;
     }
 
     .logo {
@@ -270,10 +275,61 @@ $user_id = $_SESSION['user_id']; // Add this line
       border-color: #E74C3C;
     }
 
+    .hamburger {
+      display: none;
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #4e6e85;
+      margin: 15px;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1100;
+    }
+
+    @media screen and (max-width: 768px) {
+      .hamburger {
+        display: block;
+      }
+      .sidemenu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 220px;
+        padding-top: 60px;
+        background-color: #f4f7fa;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+        font-size: 14px;
+        z-index: 1050;
+        align-items: flex-start;
+      }
+      .sidemenu.active {
+        transform: translateX(0);
+      }
+      .everything.shifted {
+        margin-left: 0; /* Remove the margin when sidebar is open on mobile */
+        transition: margin-left 0.3s;
+      }
+      .everything {
+        margin-left: 0;
+        transition: margin-left 0.3s;
+      }
+      .main {
+        margin-left: -220px; /* Remove the margin when sidebar is open on mobile */
+        transition: margin-left 0.3s;
+      }
+    }
+
   </style>
 </head>
 <body>
   <div class="everything">
+    <button class="hamburger" id="hamburger">&#9776;</button>
     <nav class="sidemenu" style="position:relative;">
       <div class="logo" style="margin-top:54px;">
         <img src="https://i.imgur.com/Rkhkta4.png" alt="Logo"/><br />
@@ -421,6 +477,17 @@ $user_id = $_SESSION['user_id']; // Add this line
     document.getElementById('show-progress-bar').addEventListener('click', function() {
       const bar = document.querySelector('.nav-progress-bg');
       bar.style.display = (bar.style.display === 'block') ? 'none' : 'block';
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+      const hamburger = document.getElementById('hamburger');
+      const sidemenu = document.querySelector('.sidemenu');
+      const everything = document.querySelector('.everything');
+      if (hamburger && sidemenu && everything) {
+        hamburger.addEventListener('click', function() {
+          sidemenu.classList.toggle('active');
+          everything.classList.toggle('shifted');
+        });
+      }
     });
   </script>
 </body>

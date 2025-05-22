@@ -219,10 +219,85 @@ body {
     border: 2px solid #4e6e85;
 }
 
+.hamburger {
+    display: none; /* hidden by default (desktop) */
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #4e6e85;
+    margin: 15px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+}
+
+@media screen and (max-width: 768px) {
+    .around {
+        flex-direction: column;
+    }
+    .hamburger {
+        display: block; /* show only on mobile */
+        color: #fff;
+    }
+    .sidemenu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 220px;
+        padding-top: 60px;
+        background-color: #fff; /* changed from #f4f7fa to #fff */
+        transform: translateX(-100%);
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+        font-size: 14px;
+        z-index: 1050;
+        align-items: flex-start;
+    }
+    .sidemenu.active {
+        transform: translateX(0);
+    }
+    .sidemenu .logo {
+        font-size: 20px;
+        margin-bottom: 20px;
+        width: 100%;
+        text-align: center;
+    }
+    .sidemenu .logo img {
+        width: 80px;
+        height: auto;
+    }
+    .list {
+        padding-left: 0;
+        width: 100%;
+    }
+    .list li {
+        margin: 5px 0;
+        width: 100%;
+    }
+    .navLink {
+        font-size: 12px !important;
+        padding: 12px 20px;
+        width: 100%;
+        border-radius: 0;
+    }
+    .main {
+        margin-left: 0;
+        padding: 20px;
+        font-size: 14px;
+        padding-top: 60px;
+    }
+    .thumb-bg img {
+        object-position: left center !important; /* align image left on mobile */
+    }
+}
     </style>
 </head>
 <body>
     <div class="around">
+        <button class="hamburger">&#9776;</button>
         <nav class="sidemenu">
             <div class="logo">
                 <img src="https://i.imgur.com/Rkhkta4.png" alt="Logo"/><br />
@@ -265,5 +340,26 @@ body {
     </div>
       
     </div>    
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.querySelector('.hamburger');
+    const sidemenu = document.querySelector('.sidemenu');
+
+    hamburger.addEventListener('click', function() {
+        sidemenu.classList.toggle('active');
+    });
+
+    // Optional: close menu when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+        if (
+            sidemenu.classList.contains('active') &&
+            !sidemenu.contains(e.target) &&
+            !hamburger.contains(e.target)
+        ) {
+            sidemenu.classList.remove('active');
+        }
+    });
+});
+</script>
 </body>
 </html>

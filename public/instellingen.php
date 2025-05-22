@@ -70,17 +70,14 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
         }
 
         .sidemenu {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
             width: 220px;
             background-color: #f4f7fa;
             padding: 30px 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 100;
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
 
         .logo {
@@ -109,6 +106,8 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
             padding: 12px 15px;
             border-radius: 5px;
             margin-bottom: 15px;
+            font-size: 16px;
+            transition: font-size 0.3s ease;
         }
 
         .navLink .icon {
@@ -129,17 +128,17 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
         }
 
         main {
-            margin-left: 220px; /* Same as sidemenu width */
-            flex: 1;
-            background-color: #ffffff;
+            flex-grow: 1;
             padding: 40px;
-            min-height: 100vh;
-            overflow-x: auto;
+            background-color: #ffffff;
+            overflow-y: auto;
+            font-size: 16px;
         }
 
         .main h1 {
             color: #4e6e85;
             margin-bottom: 30px;
+            font-size: 32px;
         }
 
         .section {
@@ -147,9 +146,13 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
             padding: 30px;
             border-radius: 8px;
             width: 100%;
+            height: 100%;
             margin-bottom: 40px;
-            /* Add this to ensure it wraps content */
-            box-sizing: border-box;
+        }
+
+        .section h1 {
+            margin-bottom: 20px;
+            color: #2c3e50;
         }
 
         .form label {
@@ -165,23 +168,20 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
             border: none;
             border-radius: 6px;
             background-color: #ffffff;
-        }
-
-        .leden {
-            background: none; /* Remove if you had a background here */
-            padding: 0;
-            border-radius: 0;
+            font-size: 16px;
         }
 
         .leden h3 {
             margin-bottom: 15px;
             color: #4e6e85;
+            font-size: 20px;
         }
 
         .lid {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
+            font-size: 16px;
         }
 
         .lid img {
@@ -202,7 +202,7 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
         }
 
         .button {
-            background-color: #E0B44A;
+            background-color: #e0b44a;
             color: black;
             display: inline-block;
             margin-top: 30px;
@@ -219,6 +219,7 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            font-size: 16px;
         }
 
         .exit-icon {
@@ -230,10 +231,132 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
         .exit-icon:hover {
             color: #e74c3c;
         }
+
+        .hamburger {
+            display: none;
+            font-size: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #4e6e85;
+            margin: 15px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+        }
+
+        @media screen and (max-width: 768px) {
+            .everything {
+                flex-direction: column;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .sidemenu {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 220px;
+                padding-top: 60px; 
+                background-color: #f4f7fa;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+                transition: transform 0.3s ease;
+                font-size: 14px;
+                z-index: 1050;
+                align-items: flex-start;
+            }
+
+            .sidemenu.active {
+                transform: translateX(0);
+            }
+
+            .sidemenu .logo {
+                font-size: 20px;
+                margin-bottom: 20px;
+                width: 100%;
+                text-align: center;
+            }
+
+             .sidemenu .logo img {
+                width: 80px; 
+                height: auto;
+            }
+
+            .list {
+                padding-left: 0;
+                width: 100%;
+            }
+
+            .list li {
+                margin: 5px 0;
+                width: 100%;
+            }
+
+            .navLink {
+                font-size: 12px !important;
+                padding: 12px 20px;
+                width: 100%;
+                border-radius: 0;
+            }
+
+            main {
+                margin-left: 0;
+                padding: 20px;
+                font-size: 14px;
+                padding-top: 60px;
+            }
+
+            main h1 {
+                font-size: 24px;
+            }
+
+            .form input {
+                height: 50px;
+                margin-bottom: 30px;
+                font-size: 14px;
+            }
+
+            .button {
+                padding: 15px 30px;
+                font-size: 16px;
+            }
+
+            .header-with-icon {
+                flex-direction: row !important;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                gap: 10px;
+                font-size: 14px;
+            }
+
+            .exit-icon {
+                font-size: 18px;
+            }
+
+            .leden h3 {
+                font-size: 16px;
+            }
+
+            .lid {
+                flex-wrap: wrap;
+                font-size: 14px;
+            }
+
+            main  {
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="everything">
+        <button class="hamburger">&#9776;</button>
         <nav class="sidemenu">
             <div class="logo">
                 <img src="https://i.imgur.com/Rkhkta4.png" alt="Logo"/><br />
@@ -274,31 +397,27 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
             </section>
         </main>
     </div>
-    <div id="leave-group-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
-        <div style="background:#fff; padding:32px 24px; border-radius:12px; max-width:400px; margin:auto; box-shadow:0 4px 32px rgba(0,0,0,0.15); text-align:center;">
-            <p style="margin-bottom:24px;">Ben je zeker dat je deze groep wilt verlaten? Dit kan niet ongedaan gemaakt worden en je zal in de toekomst opnieuw uitgenodigd moeten worden.</p>
-            <button id="cancel-leave-group" style="margin-right:16px; padding:8px 24px; border-radius:6px; border:none; background:#eee; color:#333; font-weight:bold; cursor:pointer;">Annuleren</button>
-            <button id="confirm-leave-group" style="padding:8px 24px; border-radius:6px; border:none; background:#c0392b; color:#fff; font-weight:bold; cursor:pointer;">Verlaten</button>
-        </div>
-    </div>
+    <div id="leave-group-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;"></div>
     <script>
-    document.querySelector('.exit-icon').addEventListener('click', function() {
-        document.getElementById('leave-group-modal').style.display = 'flex';
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.querySelector('.hamburger');
+    const sidemenu = document.querySelector('.sidemenu');
+
+    hamburger.addEventListener('click', function() {
+        sidemenu.classList.toggle('active');
     });
-    document.getElementById('cancel-leave-group').addEventListener('click', function() {
-        document.getElementById('leave-group-modal').style.display = 'none';
+
+    // Optional: close menu when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+        if (
+            sidemenu.classList.contains('active') &&
+            !sidemenu.contains(e.target) &&
+            !hamburger.contains(e.target)
+        ) {
+            sidemenu.classList.remove('active');
+        }
     });
-    document.getElementById('confirm-leave-group').addEventListener('click', function() {
-        fetch('instellingen.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'leave_group=1&group_id=<?php echo $groupId; ?>'
-        })
-        .then(response => response.text())
-        .then(data => {
-            window.location.href = 'scorebord.php';
-        });
-    });
-    </script>
+});
+</script>
 </body>
 </html>
