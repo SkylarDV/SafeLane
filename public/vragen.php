@@ -4,45 +4,41 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
-?>
-<?php
 require_once 'db.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_progress'])) {
-    $user_id = intval($_POST['user_id']);
-    $progress = intval($_POST['progress']);
-
-    $sql = "UPDATE users SET Progress = ? WHERE ID = ?";
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("ii", $progress, $user_id);
-    $stmt->execute();
-
-    if ($stmt->affected_rows >= 0) {
-        echo "OK";
-    } else {
-        http_response_code(500);
-        echo "Failed to update progress";
-    }
-    $stmt->close();
-    exit; // Prevent further output for AJAX
-}
-
-// Fetch user's progress for the logged-in user
+// Get the Monday of the current week
+$monday = date('Y-m-d', strtotime('monday this week'));
 $user_id = $_SESSION['user_id'];
-$progress = 0;
-$progress_sql = "SELECT Progress FROM users WHERE ID = ?";
-$progress_stmt = $mysqli->prepare($progress_sql);
-$progress_stmt->bind_param("i", $user_id);
-$progress_stmt->execute();
-$progress_stmt->bind_result($progress);
-$progress_stmt->fetch();
-$progress_stmt->close();
 
-$seven_days_ago = date('Y-m-d', strtotime('-7 days'));
+// Check if a row exists for this user and week
+$check_sql = "SELECT * FROM `user-results` WHERE User_ID = ? AND Date = ?";
+$check_stmt = $mysqli->prepare($check_sql);
+$check_stmt->bind_param("is", $user_id, $monday);
+$check_stmt->execute();
+$result = $check_stmt->get_result();
 
-$sql = "SELECT Question_ID, Type, Question_Text FROM questionlist WHERE Date >= ? ORDER BY Date ASC";
+if ($result->num_rows === 0) {
+    // Insert a new row with all Q1-Q10 as NULL
+    $insert_sql = "INSERT INTO `user-results` (User_ID, Date) VALUES (?, ?)";
+    $insert_stmt = $mysqli->prepare($insert_sql);
+    $insert_stmt->bind_param("is", $user_id, $monday);
+    $insert_stmt->execute();
+    $insert_stmt->close();
+
+    // Fetch the new row for logging
+    $check_stmt->execute();
+    $result = $check_stmt->get_result();
+}
+$row = $result->fetch_assoc();
+$check_stmt->close();
+
+
+$user_id = $_SESSION['user_id'];
+//$seven_days_ago = date('Y-m-d', strtotime('-7 days'));
+
+// Fetch the last 10 questions (most recent first)
+$sql = "SELECT Question_ID, Type, Question_Text FROM questionlist ORDER BY Date DESC LIMIT 10";
 $stmt = $mysqli->prepare($sql);
-$stmt->bind_param("s", $seven_days_ago);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -213,6 +209,24 @@ if ($result && $result->num_rows > 0) {
 
         $questions[] = $question;
     }
+    // Reverse to show oldest first
+    //$questions = array_reverse($questions);
+
+    if (isset($_GET['get_user_results']) && isset($_GET['user_id'])) {
+        require_once 'db.php';
+        $user_id = intval($_GET['user_id']);
+        $monday = date('Y-m-d', strtotime('monday this week'));
+        $sql = "SELECT Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, Q10 FROM `user-results` WHERE User_ID = ? AND Date = ?";
+        $stmt = $mysqli->prepare($sql);
+        $stmt->bind_param("is", $user_id, $monday);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        header('Content-Type: application/json');
+        echo json_encode($row ?: []);
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -224,9 +238,12 @@ if ($result && $result->num_rows > 0) {
   <link rel="icon" type="image/png" href="https://i.imgur.com/Rkhkta4.png">
   <script src="JS/p5.min.js"></script>
   <script>
+
+    var userResults = <?php echo json_encode($row); ?>;
+
     var questions = <?php echo json_encode($questions); ?>;
     console.log(questions);
-    var currentIndex = Math.min(<?php echo intval($progress); ?>, questions.length - 1);
+    var currentIndex = 0;
     var game = questions.length > 0 ? questions[0].Type : "";
 
     function showQuestion(index) {
@@ -278,26 +295,26 @@ if ($result && $result->num_rows > 0) {
       indicator.style.left = (circleRect.left + circleRect.width / 2 + scrollLeft) + 'px';
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('next-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            if (typeof currentIndex === 'undefined') {
-                currentIndex = window.progress || 0;
-            }
-            if (currentIndex >= questions.length - 1) {
-                window.location.href = 'resultaten.php';
-            } else {
-                currentIndex++;
-                //showQuestion(currentIndex);
-            }
-        });
-    });
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     document.getElementById('next-btn').addEventListener('click', function(e) {
+    //         e.preventDefault();
+    //         if (typeof currentIndex === 'undefined') {
+    //             currentIndex = window.progress || 0;
+    //         }
+    //         if (currentIndex >= questions.length - 1) {
+    //             window.location.href = 'resultaten.php';
+    //         } else {
+    //             currentIndex++;
+    //             //showQuestion(currentIndex);
+    //         }
+    //     });
+    // });
   </script>
   <script>
   var questions = <?php echo json_encode($questions); ?>;
-  var currentIndex = Math.min(<?php echo intval($progress); ?>, questions.length - 1);
+  var currentIndex = 0;
   var game = questions.length > 0 ? questions[0].Type : "";
-  window.progress = <?php echo intval($progress); ?>;
+  window.progress = 0;
   window.user_id = <?php echo intval($user_id); ?>;
 </script>
   <script src="JS/script.js"></script>
@@ -604,7 +621,11 @@ if ($result && $result->num_rows > 0) {
     </div>
   </div>
   <script>
-  window.progress = <?php echo intval($progress); ?>;
+    // Log the user-results row to the console
+    console.log("user-results row:", <?php echo json_encode($row); ?>);
+  </script>
+  <script>
+  window.progress = 0;
   window.user_id = <?php echo intval($user_id); ?>;
 </script>
 </body>

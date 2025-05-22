@@ -10,7 +10,27 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 require_once 'db.php';
-// You can now use $mysqli for any queries on this page
+
+// Check if all Q1-Q10 are filled for this user and week
+$user_id = $_SESSION['user_id'];
+$monday = date('Y-m-d', strtotime('monday this week'));
+$done = false;
+
+$sql = "SELECT Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, Q10 FROM `user-results` WHERE User_ID = ? AND Date = ?";
+$stmt = $mysqli->prepare($sql);
+$stmt->bind_param("is", $user_id, $monday);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($row = $result->fetch_assoc()) {
+    $done = true;
+    for ($i = 1; $i <= 10; $i++) {
+        if ($row["Q$i"] === null) {
+            $done = false;
+            break;
+        }
+    }
+}
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -220,7 +240,27 @@ body {
         <div class="thumb-bg">
             <img src="https://i.imgur.com/3j8Gfj4.png" alt="Car" />
         </div>
-        <a class="get-started-btn" href="vragen.php">Begin Eraan</a>
+        <?php if ($done): ?>
+            <div style="
+                position:absolute;
+                top:45%;
+                left:50%;
+                transform:translate(-50%,-50%);
+                z-index:2;
+                text-align:center;
+                color:#4e6e85;
+                font-size:1.3em;
+                font-weight:bold;
+                background:rgba(255,255,255,0.92);
+                padding:24px 32px;
+                border-radius:18px;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            ">
+                Je hebt de vragenlijst van deze week al compleet ingevuld!
+            </div>
+        <?php else: ?>
+            <a class="get-started-btn" href="vragen.php">Begin Eraan</a>
+        <?php endif; ?>
         <a class="logout-btn" href="index.php?logout=1">Uitloggen</a>
     </div>
       

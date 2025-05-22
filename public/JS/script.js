@@ -162,9 +162,9 @@ function setup() {
             });
         }
     }
-    if (typeof showQuestion === "function") {
-        showQuestion(currentIndex);
-    }
+    // if (typeof showQuestion === "function") {
+    //     showQuestion(currentIndex);
+    // }
 }
 
 function windowResized() {
@@ -916,6 +916,7 @@ function nextQuestion() {
     if (wasCorrect) {
         playerScore += 10;
     }
+    console.log('Submitting answer for question', currentIndex + 1, 'type:', game);
     // Send game type and correctness to update_score.php
     fetch('update_score.php', {
         method: 'POST',
@@ -923,7 +924,8 @@ function nextQuestion() {
         body: 'user_id=' + window.user_id +
               '&points=' + (wasCorrect ? 10 : 0) +
               '&game=' + encodeURIComponent(game) +
-              '&correct=' + (wasCorrect ? 1 : 0)
+              '&correct=' + (wasCorrect ? 1 : 0) +
+              '&question_number=' + (currentIndex + 1)
     });
 
     fetch('vragen.php', {
@@ -933,26 +935,37 @@ function nextQuestion() {
     });
 
     currentIndex++;
-    showGreenCheck = false; // <-- Clear the checkmark here
-    showQuestion(currentIndex);
-    updateProgressCircles(currentIndex);
-    loadSignForCurrentQuestion();
-    setTimeout(() => updateActiveIndicator(currentIndex), 0);
+    showGreenCheck = false;
+
+    if (currentIndex < questions.length) {
+        showQuestion(currentIndex);
+        loadSignForCurrentQuestion();
+        setTimeout(() => updateActiveIndicator(currentIndex), 0);
+        fetchAndUpdateProgressCircles(); // Only call if not last question
+    } else {
+        // Redirect immediately, no message or delay
+        window.location.href = 'resultaten.php';
+    }
 }
 
-function updateProgressCircles(progress) {
+function updateProgressCircles() {
   const circles = document.querySelectorAll('.progress-circles .circle');
-  circles.forEach((circle, idx) => {
-    circle.classList.remove('filled');
-    if (idx < progress) {
-      circle.classList.add('filled');
-      circle.style.background = "#E0B44A";
-      circle.style.borderColor = "#E0B44A";
-    } else {
-      circle.style.background = "#fff";
-      circle.style.borderColor = "#E0B44A";
+  for (let i = 0; i < circles.length; i++) {
+    const qVal = userResults && userResults['Q' + (i + 1)];
+    if (qVal === null || typeof qVal === 'undefined') {
+      // Not answered: white
+      circles[i].style.background = '#fff';
+      circles[i].style.borderColor = '#E0B44A';
+    } else if (qVal == 1) {
+      // Correct: green
+      circles[i].style.background = '#4CAF50';
+      circles[i].style.borderColor = '#4CAF50';
+    } else if (qVal == 0) {
+      // Incorrect: red
+      circles[i].style.background = '#E74C3C';
+      circles[i].style.borderColor = '#E74C3C';
     }
-  });
+  }
 }
 
 function updateActiveIndicator(activeIdx) {
@@ -1044,34 +1057,74 @@ function updateActiveIndicator(activeIdx) {
     indicator.style.left = (circleRect.left + circleRect.width / 2 + scrollLeft) + 'px';
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('next-btn').addEventListener('click', function(e) {
-        e.preventDefault();
-        if (typeof currentIndex === 'undefined') {
-            currentIndex = window.progress || 0;
-        }
-        if (currentIndex >= questions.length - 1) {
-            window.location.href = 'resultaten.php';
-        } else {
-            currentIndex++;
-            //showQuestion(currentIndex);
-        }
-    });
-});
+// document.addEventListener('DOMContentLoaded', function() {
+//     document.getElementById('next-btn').addEventListener('click', function(e) {
+//         e.preventDefault();
+//         if (typeof currentIndex === 'undefined') {
+//             currentIndex = window.progress || 0;
+//         }
+//         if (currentIndex >= questions.length - 1) {
+//             window.location.href = 'resultaten.php';
+//         } else {
+//             currentIndex++;
+//             //showQuestion(currentIndex);
+//         }
+//     });
+// });
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Only set up the next button handler here
+  fetchAndUpdateProgressCircles();
+
   var nextBtn = document.getElementById('next-btn');
   if (nextBtn) {
     nextBtn.onclick = function(e) {
       e.preventDefault();
       showGreenCheck = false;
-      if (currentIndex < questions.length) {
-        nextQuestion();
-      } else {
-        window.location.href = 'resultaten.php';
-      }
+      nextQuestion();
     };
   }
 });
+
+function fetchAndUpdateProgressCircles() {
+  fetch('vragen.php?get_user_results=1&user_id=' + window.user_id)
+    .then(res => res.json())
+    .then(data => {
+      window.userResults = data;
+      updateProgressCircles();
+
+      // Check if all Q1-Q10 are answered
+      let allAnswered = true;
+      for (let i = 1; i <= 10; i++) {
+        const qVal = window.userResults['Q' + i];
+        if (qVal === null || typeof qVal === 'undefined') {
+          allAnswered = false;
+          break;
+        }
+      }
+
+      if (allAnswered) {
+        // Do nothing here, let nextQuestion() handle the message and redirect
+        return;
+      }
+
+      // Only set currentIndex and showQuestion if not past the last question
+      if (currentIndex < questions.length) {
+        currentIndex = getFirstUnansweredIndex();
+        showQuestion(currentIndex);
+        setTimeout(() => updateActiveIndicator(currentIndex), 0);
+      }
+    });
+}
+
+function getFirstUnansweredIndex() {
+  if (!window.userResults) return 0;
+  for (let i = 0; i < 10; i++) {
+    const qVal = window.userResults['Q' + (i + 1)];
+    if (qVal === null || typeof qVal === 'undefined') {
+      return i;
+    }
+  }
+  return 0; // fallback to first question if all are answered
+}
+
 
