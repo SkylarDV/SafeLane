@@ -4,6 +4,63 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
+require_once 'db.php';
+
+// Get the Monday of the current week
+$monday = date('Y-m-d', strtotime('monday this week'));
+$userId = $_SESSION['user_id'];
+
+// Fetch the last 10 questions (same as vragen.php)
+$sql = "SELECT Question_ID, Type FROM questionlist ORDER BY Date DESC LIMIT 10";
+$stmt = $mysqli->prepare($sql);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$questions = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $questions[] = $row;
+    }
+}
+$stmt->close();
+
+// Fetch user results for this week
+$sql = "SELECT Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, Q10 FROM `user-results` WHERE User_ID = ? AND Date = ?";
+$stmt = $mysqli->prepare($sql);
+$stmt->bind_param("is", $userId, $monday);
+$stmt->execute();
+$res = $stmt->get_result();
+$userResults = $res->fetch_assoc();
+$stmt->close();
+
+// Calculate percentages per type
+$typeScores = ['prior' => 0, 'sign' => 0, 'park' => 0, 'object' => 0];
+$typeCounts = ['prior' => 0, 'sign' => 0, 'park' => 0, 'object' => 0];
+
+foreach ($questions as $idx => $q) {
+    $type = $q['Type'];
+    $qKey = 'Q' . ($idx + 1);
+    $answered = isset($userResults[$qKey]) ? $userResults[$qKey] : null;
+    if (!isset($typeScores[$type])) continue;
+    if ($answered !== null && $answered !== '') {
+        $typeCounts[$type]++;
+        if ($answered == 1) {
+            $typeScores[$type]++;
+        }
+    }
+}
+
+$priorPercent = $typeCounts['prior'] > 0 ? round(($typeScores['prior'] / $typeCounts['prior']) * 100) : 0;
+$signPercent  = $typeCounts['sign']  > 0 ? round(($typeScores['sign']  / $typeCounts['sign'])  * 100) : 0;
+$parkPercent  = $typeCounts['park']  > 0 ? round(($typeScores['park']  / $typeCounts['park'])  * 100) : 0;
+$objectPercent= $typeCounts['object']> 0 ? round(($typeScores['object']/ $typeCounts['object'])* 100) : 0;
+
+// Update the users table
+$updateSql = "UPDATE users SET Prior_Score=?, Speed_Score=?, Park_Score=?, Object_Score=? WHERE ID=?";
+$updateStmt = $mysqli->prepare($updateSql);
+$updateStmt->bind_param("iiiii", $priorPercent, $signPercent, $parkPercent, $objectPercent, $userId);
+$updateStmt->execute();
+$updateStmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -327,6 +327,34 @@ if ($result && $result->num_rows > 0) {
   window.user_id = <?php echo intval($user_id); ?>;
 </script>
   <script src="JS/script.js"></script>
+  <script>
+  const typeScores = {};
+  const typeCounts = {};
+
+  questions.forEach((q, idx) => {
+      const type = q.Type;
+      const qKey = 'Q' + (idx + 1);
+      const answered = window.userResults && window.userResults[qKey];
+      if (!typeScores[type]) {
+          typeScores[type] = 0;
+          typeCounts[type] = 0;
+      }
+      if (answered == 1) {
+          typeScores[type] += 1; // count correct answers
+      }
+      if (answered !== null && typeof answered !== 'undefined') {
+          typeCounts[type]++; // count answered questions
+      }
+  });
+
+  // Calculate and log percentage correct per type
+  Object.keys(typeCounts).forEach(type => {
+      const correct = typeScores[type];
+      const answered = typeCounts[type];
+      const percent = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+      console.log(`${type}: ${percent}% correct (${correct}/${answered})`);
+  });
+  </script>
   <link rel="stylesheet" href="CSS/normalize.css">
   <style>
 
