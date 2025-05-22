@@ -50,7 +50,7 @@ function preload() {
     roadbg = loadImage('https://i.imgur.com/FlS2QeG.png');
     tableImg = loadImage('https://i.imgur.com/l521dGL.png');
     signbg = loadImage('https://i.imgur.com/SzUvDYF.png');
-    parkRoadbg = loadImage('images/parkRoad.png');
+    parkRoadbg = loadImage('https://i.imgur.com/FNJqNZ1.png'); // changed here
     parkCarImg = loadImage('https://i.imgur.com/1AczEtv.png');
 }
 

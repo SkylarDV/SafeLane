@@ -214,7 +214,7 @@ body {
 <body>
     <div class="around">
         <nav class="sidemenu">
-            <div class="logo"><img src="images/newLogo.png"><br><span>Safelane</span></div>
+            <div class="logo"><img src="https://i.imgur.com/Rkhkta4.png"><br><span>Safelane</span></div>
             <ul class="list">
                 <li><a href="index.php" class="navLink"><i class="icon">🏠</i>Startscherm</a></li>
                 <li><a href="scorebord.php" class="navLink "><i class="icon">🏆</i>Scorebord</a></li>

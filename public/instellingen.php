@@ -203,7 +203,7 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
     <div class="everything">
         <nav class="sidemenu">
             <div class="logo">
-                <img src="images/newLogo.png" alt="Logo"/><br />
+                <img src="https://i.imgur.com/Rkhkta4.png" alt="Logo"/><br />
                 <span>Safelane</span>
             </div>
             <ul class="list">
