@@ -32,15 +32,16 @@ if ($id > 0) {
     box-sizing: border-box;
 }
 
-body {
+body, html {
     font-family: 'Ubuntu', sans-serif;
     color: #000;
     background-color: #1e1e1e;
+    height: 100%;
 }
 
 .around {
     display: flex;
-    height: 100vh;
+    min-height: 100vh; /* was height: 100vh; */
 }
 
 .sidemenu {
@@ -109,7 +110,10 @@ body {
     background-color: white;
     padding: 40px;
     margin-left: 220px; /* Add this so main content is not under the sidebar */
-    min-height: 100vh;
+    min-height: 100vh; /* ensures white background always fills viewport */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 .main h1 {
