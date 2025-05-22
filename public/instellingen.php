@@ -25,14 +25,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_group']) && iss
 
 $userId = $_SESSION['user_id'];
 
-// Check if user is in any group
-$checkGroups = $mysqli->query("SELECT Group_ID FROM `user-group` WHERE User_ID = $userId LIMIT 1");
-
+// Set groupId BEFORE handling invite
 $groupId = isset($_GET['group_id']) ? intval($_GET['group_id']) : 0;
 if ($groupId <= 0) {
     echo "<p>Geen groep geselecteerd.</p>";
     exit;
 }
+
+// Handle invite POST
+$inviteMsg = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invite_user'])) {
+    $invite = trim($_POST['invite_user']);
+    if ($invite !== '') {
+        $inviteEscaped = $mysqli->real_escape_string($invite);
+        $userRes = $mysqli->query("SELECT ID FROM users WHERE Username = '$inviteEscaped' OR Email = '$inviteEscaped' LIMIT 1");
+        if ($user = $userRes->fetch_assoc()) {
+            $inviteId = $user['ID'];
+            // Don't add yourself
+            if ($inviteId == $userId) {
+                $inviteMsg = "Je kunt jezelf niet uitnodigen.";
+            } else {
+                // Add user to group if not already added
+                $mysqli->query("INSERT IGNORE INTO `user-group` (User_ID, Group_ID, Score) VALUES ($inviteId, $groupId, 0)");
+                if ($mysqli->affected_rows > 0) {
+                    $inviteMsg = "Gebruiker succesvol toegevoegd!";
+                } else {
+                    $inviteMsg = "Gebruiker zit al in de groep.";
+                }
+            }
+        } else {
+            $inviteMsg = "Gebruiker niet gevonden.";
+        }
+    } else {
+        $inviteMsg = "Vul een gebruikersnaam of e-mail in.";
+    }
+}
+
+// Check if user is in any group
+$checkGroups = $mysqli->query("SELECT Group_ID FROM `user-group` WHERE User_ID = $userId LIMIT 1");
+
 $leden = [];
 $res = $mysqli->query("SELECT u.Username, u.Image_Url FROM `user-group` ug JOIN users u ON ug.User_ID = u.ID WHERE ug.Group_ID = $groupId");
 while ($row = $res->fetch_assoc()) {
@@ -50,7 +81,7 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -212,6 +243,7 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
             font-size: 18px;
             font-weight: bold;
             transition: background-color 0.3s;
+            border: none; /* <-- add this line */
         }
 
         .header-with-icon {
@@ -378,8 +410,14 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
                         <label>Digital experience design</label>
                         <i class="ri-logout-box-r-line exit-icon"></i>
                     </div>
-                    <input type="text" placeholder="Nodig uit met gebruikersnaam" />
-
+                    <!-- Invite form -->
+                    <?php if ($inviteMsg): ?>
+                        <div style="color: #c0392b; margin-bottom: 10px;"><?= htmlspecialchars($inviteMsg) ?></div>
+                    <?php endif; ?>
+                    <form method="post" style="margin-bottom:20px;">
+                        <input type="text" name="invite_user" placeholder="Nodig uit met gebruikersnaam of e-mail" required />
+                        <button type="submit" class="button" style="padding:10px 20px; margin-top:10px;">Uitnodigen</button>
+                    </form>
                     <div class="leden">
                         <h3>Leden</h3>
                         <?php foreach ($leden as $lid): ?>
@@ -417,6 +455,55 @@ document.addEventListener('DOMContentLoaded', function() {
             sidemenu.classList.remove('active');
         }
     });
+
+    // Leave group on exit-icon click
+    const exitIcon = document.querySelector('.exit-icon');
+    const modal = document.getElementById('leave-group-modal');
+    if (exitIcon && modal) {
+        exitIcon.addEventListener('click', function() {
+            // Show modal with confirmation content
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 32px 24px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+                    max-width: 350px;
+                    margin: auto;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                ">
+                    <p style="font-size:18px; margin-bottom:24px;">Weet je zeker dat je deze groep wilt verlaten?</p>
+                    <div style="display:flex; gap:16px;">
+                        <button id="leave-confirm-btn" style="background:#c0392b; color:white; border:none; border-radius:8px; padding:10px 24px; font-size:16px; cursor:pointer;">Verlaten</button>
+                        <button id="leave-cancel-btn" style="background:#eee; color:#333; border:none; border-radius:8px; padding:10px 24px; font-size:16px; cursor:pointer;">Annuleren</button>
+                    </div>
+                </div>
+            `;
+            modal.style.display = 'flex';
+
+            document.getElementById('leave-cancel-btn').onclick = function() {
+                modal.style.display = 'none';
+            };
+            document.getElementById('leave-confirm-btn').onclick = function() {
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'leave_group=1&group_id=<?= $groupId ?>'
+                })
+                .then(res => res.text())
+                .then(txt => {
+                    if (txt.trim() === 'OK') {
+                        window.location.href = 'groepen.php';
+                    } else {
+                        alert('Kon groep niet verlaten: ' + txt);
+                        modal.style.display = 'none';
+                    }
+                });
+            };
+        });
+    }
 });
 </script>
 </body>
