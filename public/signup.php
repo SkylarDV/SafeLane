@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $mysqli->prepare(
-                "INSERT INTO users (Username, Image_Url, Email, Password, Sign_Score, Park_Score, Speed_Score, Light_Score, Prior_Score)
+                "INSERT INTO users (Username, Image_Url, Email, Password, Object_Score, Park_Score, Speed_Score, Light_Score, Prior_Score)
                  VALUES (?, NULL, ?, ?, 0, 0, 0, 0, 0)"
             );
             $stmt->bind_param("sss", $username, $email, $hash);
