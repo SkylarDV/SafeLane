@@ -4,10 +4,76 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
-?>
-<?php
-require_once 'db.php';
-$groupId = 1; // Replace with the actual group ID you want to show
+ require_once 'db.php';
+
+// Handle AJAX leave group request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_group']) && isset($_POST['group_id'])) {
+    $userId = $_SESSION['user_id'];
+    $groupId = intval($_POST['group_id']);
+    if ($groupId > 0) {
+        $stmt = $mysqli->prepare("DELETE FROM `user-group` WHERE User_ID = ? AND Group_ID = ?");
+        $stmt->bind_param('ii', $userId, $groupId);
+        $stmt->execute();
+        $stmt->close();
+        echo "OK";
+    } else {
+        http_response_code(400);
+        echo "Invalid group";
+    }
+    exit;
+}
+
+$userId = $_SESSION['user_id'];
+
+// Check if user is in any group
+$checkGroups = $mysqli->query("SELECT Group_ID FROM `user-group` WHERE User_ID = $userId LIMIT 1");
+if ($checkGroups->num_rows === 0) {
+    // Show message and exit before rendering the rest of the page
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>SafeLane - Groep Instellingen</title>
+        <link rel="icon" type="image/png" href="https://i.imgur.com/Rkhkta4.png">
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+        <style>
+            body { font-family: 'Ubuntu', sans-serif; background: #f4f7fa; color: #222; }
+            .geen-groep {
+                max-width: 500px;
+                margin: 100px auto;
+                background: #fff3cd;
+                color: #856404;
+                border: 1px solid #ffeeba;
+                border-radius: 8px;
+                padding: 32px 24px;
+                font-size: 1.2rem;
+                text-align: center;
+            }
+            .plus-icon {
+                color: #e0b44a;
+                font-size: 2rem;
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="geen-groep">
+            Je zit nog niet in een groep.<br>
+            Vraag aan iemand om je uit te nodigen of maak zelf een groep aan met
+            <span class="plus-icon">+</span>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+$groupId = isset($_GET['group_id']) ? intval($_GET['group_id']) : 0;
+if ($groupId <= 0) {
+    echo "<p>Geen groep geselecteerd.</p>";
+    exit;
+}
 $leden = [];
 $res = $mysqli->query("SELECT u.Username, u.Image_Url FROM `user-group` ug JOIN users u ON ug.User_ID = u.ID WHERE ug.Group_ID = $groupId");
 while ($row = $res->fetch_assoc()) {
@@ -249,5 +315,31 @@ $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg';
             </section>
         </main>
     </div>
+    <div id="leave-group-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:32px 24px; border-radius:12px; max-width:400px; margin:auto; box-shadow:0 4px 32px rgba(0,0,0,0.15); text-align:center;">
+            <p style="margin-bottom:24px;">Ben je zeker dat je deze groep wilt verlaten? Dit kan niet ongedaan gemaakt worden en je zal in de toekomst opnieuw uitgenodigd moeten worden.</p>
+            <button id="cancel-leave-group" style="margin-right:16px; padding:8px 24px; border-radius:6px; border:none; background:#eee; color:#333; font-weight:bold; cursor:pointer;">Annuleren</button>
+            <button id="confirm-leave-group" style="padding:8px 24px; border-radius:6px; border:none; background:#c0392b; color:#fff; font-weight:bold; cursor:pointer;">Verlaten</button>
+        </div>
+    </div>
+    <script>
+    document.querySelector('.exit-icon').addEventListener('click', function() {
+        document.getElementById('leave-group-modal').style.display = 'flex';
+    });
+    document.getElementById('cancel-leave-group').addEventListener('click', function() {
+        document.getElementById('leave-group-modal').style.display = 'none';
+    });
+    document.getElementById('confirm-leave-group').addEventListener('click', function() {
+        fetch('instellingen.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'leave_group=1&group_id=<?php echo $groupId; ?>'
+        })
+        .then(response => response.text())
+        .then(data => {
+            window.location.href = 'scorebord.php';
+        });
+    });
+    </script>
 </body>
 </html>

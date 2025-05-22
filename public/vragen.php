@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_progress'])) {
     exit; // Prevent further output for AJAX
 }
 
-// Fetch user's progress (for user ID 1)
-$user_id = 1; // Or use $_SESSION['user_id'] if available
+// Fetch user's progress for the logged-in user
+$user_id = $_SESSION['user_id'];
 $progress = 0;
 $progress_sql = "SELECT Progress FROM users WHERE ID = ?";
 $progress_stmt = $mysqli->prepare($progress_sql);
@@ -598,6 +598,7 @@ if ($result && $result->num_rows > 0) {
   </div>
   <script>
   window.progress = <?php echo intval($progress); ?>;
+  window.user_id = <?php echo intval($user_id); ?>;
 </script>
 </body>
 </html>

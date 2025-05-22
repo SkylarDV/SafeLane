@@ -175,8 +175,7 @@ main {
 <body>
     <?php
     require_once 'db.php';
-    // Optionally, use the logged-in user's ID from the session
-    $userId = 1; // Replace with $_SESSION['user_id'] if using sessions
+    $userId = $_SESSION['user_id']; // Use the logged-in user's ID
 
     $sql = "SELECT Sign_Score, Park_Score, Speed_Score, Light_Score, Prior_Score FROM users WHERE ID = $userId";
     $result = $mysqli->query($sql);

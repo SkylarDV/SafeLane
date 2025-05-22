@@ -913,14 +913,14 @@ function nextQuestion() {
         fetch('update_score.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'user_id=1&points=10'
+            body: 'user_id=' + window.user_id + '&points=10'
         });
     }
 
     fetch('vragen.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'update_progress=1&user_id=1&progress=' + (currentIndex + 1)
+        body: 'update_progress=1&user_id=' + window.user_id + '&progress=' + (currentIndex + 1)
     });
 
     currentIndex++;

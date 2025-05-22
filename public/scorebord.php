@@ -4,6 +4,7 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
+$user_id = $_SESSION['user_id']; // Add this line
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +14,6 @@ if (!isset($_SESSION['user_id'])) {
   <title>SafeLane - Scorebord</title>
   <link rel="icon" type="image/png" href="https://i.imgur.com/Rkhkta4.png">
   <link rel="stylesheet" href="CSS/normalize.css" />
-  <link rel="stylesheet" href="CSS/style3.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600&family=Ubuntu:wght@400;700&display=swap" rel="stylesheet" />
@@ -236,15 +236,21 @@ if (!isset($_SESSION['user_id'])) {
       <?php
       require_once 'db.php';
 
-      // Get all groups
+      // Only fetch groups the user is a member of
       $groups = [];
-      $groupResult = $mysqli->query("SELECT ID, Name FROM `groups`");
+      $groupResult = $mysqli->query(
+          "SELECT g.ID, g.Name
+           FROM `groups` g
+           JOIN `user-group` ug ON ug.Group_ID = g.ID
+           WHERE ug.User_ID = $user_id"
+      );
       while ($group = $groupResult->fetch_assoc()) {
           $groups[$group['ID']] = [
               'name' => $group['Name'],
               'players' => []
           ];
       }
+
 
       // For each group, get players (user-group join users)
       foreach ($groups as $groupId => &$group) {
@@ -267,7 +273,7 @@ if (!isset($_SESSION['user_id'])) {
         <h1 class="pageTitle">Scorebord</h1>
         <div class="headerIcons">
           <a href="groepen.php" style="text-decoration: none; color: #4e6e85;"><i class="ri-add-line"></i></a>
-          <a href="instellingen.php"  style="text-decoration: none; color: #4e6e85;"><i class="ri-more-2-fill"></i></a>
+          <a href="instellingen.php<?php if (!empty($groups)) { echo '?group_id=' . array_key_first($groups); } ?>" style="text-decoration: none; color: #4e6e85;" id="settings-link"><i class="ri-more-2-fill"></i></a>
           <i class="ri-car-line"></i>
         </div>
       </div>
@@ -280,15 +286,24 @@ if (!isset($_SESSION['user_id'])) {
 
       <?php
       $placeholder = 'https://i.imgur.com/6HJ4u1L.jpeg'; // Set your placeholder path
-      $first = true;
-      foreach ($groups as $groupId => $group):
+      if (empty($groups)) : ?>
+          <div class="teamContent" style="display:block;">
+              <div style="max-width:500px;margin:60px auto;background:#fff3cd;color:#856404;border:1px solid #ffeeba;border-radius:8px;padding:32px 24px;font-size:1.2rem;text-align:center;">
+                  Je zit nog niet in een groep.<br>
+                  Vraag aan iemand om je uit te nodigen of maak zelf een groep aan met +
+              </div>
+          </div>
+      <?php
+      else:
+          $first = true;
+          foreach ($groups as $groupId => $group):
       ?>
           <div class="teamContent<?php if (!$first) echo ' hidden'; ?>" id="team<?= $groupId ?>">
               <?php
               $rank = 1;
               foreach ($group['players'] as $player):
                   $img = !empty($player['Image_Url']) ? htmlspecialchars($player['Image_Url']) : $placeholder;
-                  $isActive = ($player['User_ID'] == 1);
+                  $isActive = ($player['User_ID'] == $user_id);
               ?>
               <div class="player<?php if ($isActive) echo ' highlight'; ?>">
                   <div class="playerInfo">
@@ -301,8 +316,9 @@ if (!isset($_SESSION['user_id'])) {
               <?php $rank++; endforeach; ?>
           </div>
       <?php
-      $first = false;
-      endforeach;
+          $first = false;
+          endforeach;
+      endif;
       ?>
     </div>
   </div>
@@ -322,10 +338,12 @@ if (!isset($_SESSION['user_id'])) {
       tabs.forEach(tab => tab.classList.remove('active'));
 
       // Set active tab based on teamId
-      if(teamId === 'team1') {
-        tabs[0].classList.add('active');
-      } else if(teamId === 'team2') {
-        tabs[1].classList.add('active');
+      const teamIndex = Array.from(document.querySelectorAll('.teamContent')).findIndex(tc => tc.id === teamId);
+      if (teamIndex !== -1) {
+        tabs[teamIndex].classList.add('active');
+        // Update settings link
+        const groupId = teamId.replace('team', '');
+        document.getElementById('settings-link').href = 'instellingen.php?group_id=' + groupId;
       }
     }
   </script>
